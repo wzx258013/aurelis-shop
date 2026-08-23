@@ -221,6 +221,23 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .lang-option:hover{background:var(--accent-dim);color:var(--accent)}
 .lang-option.active{color:var(--accent);background:var(--accent-dim)}
 
+/* MUSIC PLAYER */
+.music-control{position:fixed;bottom:32px;right:32px;z-index:999;display:flex;align-items:center;gap:12px}
+.music-btn{width:48px;height:48px;border-radius:50%;background:rgba(19,19,13,.85);border:1px solid var(--border);color:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .4s var(--ease);backdrop-filter:blur(10px);font-size:1.1rem}
+.music-btn:hover{background:var(--accent-dim);border-color:var(--accent);transform:scale(1.08)}
+.music-btn.playing{animation:musicPulse 2s ease-in-out infinite}
+.music-bars{display:flex;align-items:flex-end;gap:2px;height:14px}
+.music-bars span{display:block;width:2px;background:var(--accent);border-radius:1px;animation:musicBar 1.2s ease-in-out infinite}
+.music-bars span:nth-child(1){height:6px;animation-delay:0s}
+.music-bars span:nth-child(2){height:10px;animation-delay:.2s}
+.music-bars span:nth-child(3){height:8px;animation-delay:.4s}
+.music-bars span:nth-child(4){height:12px;animation-delay:.1s}
+.music-bars span:nth-child(5){height:5px;animation-delay:.3s}
+@keyframes musicBar{0%,100%{height:4px}50%{height:14px}}
+@keyframes musicPulse{0%,100%{box-shadow:0 0 0 0 rgba(201,169,110,.3)}50%{box-shadow:0 0 0 8px rgba(201,169,110,0)}}
+.music-hint{font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);background:rgba(19,19,13,.85);padding:8px 14px;border-radius:20px;border:1px solid var(--border);backdrop-filter:blur(10px);white-space:nowrap;opacity:0;transform:translateX(10px);transition:all .4s var(--ease);pointer-events:none}
+.music-control:hover .music-hint{opacity:1;transform:translateX(0)}
+
 /* ADMIN */
 .admin-login{position:fixed;inset:0;background:var(--bg);z-index:500;display:none;align-items:center;justify-content:center}
 .admin-login.show{display:flex}
@@ -578,6 +595,18 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 </div>
 
 <div class="msg-toast" id="toast"></div>
+
+<!-- ═══════ BACKGROUND MUSIC ═══════ -->
+<audio id="bgMusic" loop preload="auto">
+  <source src="https://cdn.pixabay.com/audio/2024/11/29/audio_2f81b813cd.mp3" type="audio/mpeg">
+</audio>
+<div class="music-control">
+  <div class="music-hint" id="musicHint">Click to play music</div>
+  <button class="music-btn" id="musicBtn" onclick="toggleMusic()">
+    <div class="music-bars" id="musicBars" style="display:none"><span></span><span></span><span></span><span></span><span></span></div>
+    <span id="musicIcon">♪</span>
+  </button>
+</div>
 
 <script>
 const DEFAULT_PRODUCTS = [
@@ -1137,6 +1166,49 @@ renderProducts();
 renderCart();
 renderSocialLinks();
 applyLang();
+
+/* ═══ MUSIC PLAYER ═══ */
+const bgMusic = document.getElementById('bgMusic');
+const musicBtn = document.getElementById('musicBtn');
+const musicBars = document.getElementById('musicBars');
+const musicIcon = document.getElementById('musicIcon');
+const musicHint = document.getElementById('musicHint');
+let musicPlaying = false;
+
+bgMusic.volume = 0.3;
+
+function toggleMusic() {
+  if (musicPlaying) {
+    bgMusic.pause();
+    musicPlaying = false;
+    musicBtn.classList.remove('playing');
+    musicBars.style.display = 'none';
+    musicIcon.style.display = 'inline';
+    musicHint.textContent = 'Play music';
+  } else {
+    bgMusic.play().then(() => {
+      musicPlaying = true;
+      musicBtn.classList.add('playing');
+      musicBars.style.display = 'flex';
+      musicIcon.style.display = 'none';
+      musicHint.textContent = 'Pause music';
+    }).catch(() => {});
+  }
+}
+
+// 页面加载后自动尝试播放（大部分浏览器会阻止，需要用户交互）
+document.addEventListener('click', function autoPlay() {
+  if (!musicPlaying) {
+    bgMusic.play().then(() => {
+      musicPlaying = true;
+      musicBtn.classList.add('playing');
+      musicBars.style.display = 'flex';
+      musicIcon.style.display = 'none';
+      musicHint.textContent = 'Pause music';
+    }).catch(() => {});
+  }
+  document.removeEventListener('click', autoPlay);
+}, { once: true });
 </script>
 </body>
 </html>
