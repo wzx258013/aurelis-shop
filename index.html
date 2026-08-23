@@ -597,9 +597,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 <div class="msg-toast" id="toast"></div>
 
 <!-- ═══════ BACKGROUND MUSIC ═══════ -->
-<audio id="bgMusic" loop preload="auto">
-  <source src="https://cdn.pixabay.com/audio/2024/11/29/audio_2f81b813cd.mp3" type="audio/mpeg">
-</audio>
+<audio id="bgMusic" loop preload="auto" style="display:none"></audio>
 <div class="music-control">
   <div class="music-hint" id="musicHint">Click to play music</div>
   <button class="music-btn" id="musicBtn" onclick="toggleMusic()">
@@ -1174,40 +1172,119 @@ const musicBars = document.getElementById('musicBars');
 const musicIcon = document.getElementById('musicIcon');
 const musicHint = document.getElementById('musicHint');
 let musicPlaying = false;
+let audioCtx = null;
+let pianoNodes = [];
 
-bgMusic.volume = 0.3;
+// 古典钢琴音乐 URL（免费 CC0 授权）
+const MUSIC_URL = 'https://cdn.pixabay.com/audio/2022/02/22/audio_d1718ab41b.mp3';
+bgMusic.src = MUSIC_URL;
+bgMusic.volume = 0.25;
+
+// Web Audio API 生成优雅钢琴旋律（备用方案）
+function createPianoAmbient() {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.08;
+  masterGain.connect(audioCtx.destination);
+
+  // 柔和钢琴和弦序列（C大调 → Am → F → G 循环）
+  const chords = [
+    [261.63, 329.63, 392.00],   // C major
+    [220.00, 261.63, 329.63],   // A minor
+    [174.61, 220.00, 261.63],   // F major
+    [196.00, 246.94, 293.66],   // G major
+    [261.63, 311.13, 392.00],   // C7
+    [220.00, 277.18, 329.63],   // A dim
+    [174.61, 220.00, 261.63],   // F major
+    [196.00, 246.94, 329.63],   // G sus4
+  ];
+
+  let chordIndex = 0;
+  const chordDuration = 4; // 每个和弦 4 秒
+
+  function playChord() {
+    if (!musicPlaying || !audioCtx) return;
+    const chord = chords[chordIndex % chords.length];
+    const now = audioCtx.currentTime;
+
+    chord.forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const filter = audioCtx.createBiquadFilter();
+
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+
+      // 添加微弱的泛音模拟钢琴
+      const osc2 = audioCtx.createOscillator();
+      const gain2 = audioCtx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.value = freq * 2;
+      gain2.gain.value = 0.03;
+      osc2.connect(gain2);
+      gain2.connect(filter);
+      osc2.start(now);
+      osc2.stop(now + chordDuration);
+
+      filter.type = 'lowpass';
+      filter.frequency.value = 2000;
+      filter.Q.value = 0.7;
+
+      // ADSR 包络
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.12, now + 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.06, now + 0.8);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + chordDuration - 0.5);
+      gain.gain.linearRampToValueAtTime(0, now + chordDuration);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+
+      osc.start(now + i * 0.05);
+      osc.stop(now + chordDuration);
+      pianoNodes.push(osc);
+    });
+
+    chordIndex++;
+    setTimeout(playChord, chordDuration * 1000 - 200);
+  }
+
+  playChord();
+}
 
 function toggleMusic() {
   if (musicPlaying) {
     bgMusic.pause();
+    if (audioCtx) { audioCtx.suspend(); }
     musicPlaying = false;
     musicBtn.classList.remove('playing');
     musicBars.style.display = 'none';
     musicIcon.style.display = 'inline';
     musicHint.textContent = 'Play music';
   } else {
+    // 先尝试在线音乐
     bgMusic.play().then(() => {
       musicPlaying = true;
       musicBtn.classList.add('playing');
       musicBars.style.display = 'flex';
       musicIcon.style.display = 'none';
       musicHint.textContent = 'Pause music';
-    }).catch(() => {});
+    }).catch(() => {
+      // 在线音乐失败，用 Web Audio 生成钢琴
+      createPianoAmbient();
+      musicPlaying = true;
+      musicBtn.classList.add('playing');
+      musicBars.style.display = 'flex';
+      musicIcon.style.display = 'none';
+      musicHint.textContent = 'Pause music';
+    });
   }
 }
 
-// 页面加载后自动尝试播放（大部分浏览器会阻止，需要用户交互）
+// 用户首次点击后自动播放
 document.addEventListener('click', function autoPlay() {
-  if (!musicPlaying) {
-    bgMusic.play().then(() => {
-      musicPlaying = true;
-      musicBtn.classList.add('playing');
-      musicBars.style.display = 'flex';
-      musicIcon.style.display = 'none';
-      musicHint.textContent = 'Pause music';
-    }).catch(() => {});
-  }
-  document.removeEventListener('click', autoPlay);
+  if (!musicPlaying) toggleMusic();
 }, { once: true });
 </script>
 </body>
