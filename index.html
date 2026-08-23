@@ -1171,20 +1171,36 @@ applyLang();
 /* ═══ YOUTUBE MUSIC PLAYER ═══ */
 let ytPlayer = null;
 let musicPlaying = false;
+let currentVideoIndex = 0;
+
+// Justin Bieber 热门歌曲视频 ID
+const JB_SONGS = [
+  'fJ9rUzIMcZQ', // Sorry
+  'ojR_-5RVLfE', // Love Yourself
+  'tQ0yjYUFKAE', // Peaches
+  'kTJczUoc26U', // Stay (with Kid Laroi)
+  'pB-4Iqc6M8I', // Boyfriend
+  'DK_0jXPuIr0', // What Do You Mean
+  '8EJ3zbKTWQs', // Yummy
+  'YqeW9_5kURI', // As Long As You Love Me
+  'nYh-n7EOtMA', // Baby
+  'II2_wp0004Q', // Intentions
+  'RgKAFK5djSk', // Let Me Love You
+  'WxL1MnYjYtg', // Ghost
+];
 
 function onYouTubeIframeAPIReady() {
   ytPlayer = new YT.Player('ytPlayer', {
     height: '1',
     width: '1',
+    videoId: JB_SONGS[0],
     playerVars: {
-      listType: 'playlist',
-      list: 'PLFgquLnL59alCl_2TQvOiD5Vgm9g1Q2P0', // Justin Bieber Best Songs
       autoplay: 0,
-      loop: 1,
-      shuffle: 1,
       controls: 0,
       modestbranding: 1,
       rel: 0,
+      fs: 0,
+      iv_load_policy: 3,
     },
     events: {
       onReady: function() {
@@ -1192,7 +1208,9 @@ function onYouTubeIframeAPIReady() {
       },
       onStateChange: function(e) {
         if (e.data === YT.PlayerState.ENDED) {
-          ytPlayer.nextVideo();
+          // 播放下一首
+          currentVideoIndex = (currentVideoIndex + 1) % JB_SONGS.length;
+          ytPlayer.loadVideoById(JB_SONGS[currentVideoIndex]);
         }
       }
     }
@@ -1206,7 +1224,6 @@ const musicHint = document.getElementById('musicHint');
 
 function toggleMusic() {
   if (!ytPlayer || !ytPlayer.playVideo) {
-    // Player not ready yet, try again
     setTimeout(toggleMusic, 500);
     return;
   }
