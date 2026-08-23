@@ -584,8 +584,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 
 <!-- ═══════ BACKGROUND MUSIC ═══════ -->
 <!-- ═══════ BACKGROUND MUSIC ═══════ -->
-<iframe id="musicFrame" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/293&auto_play=true&loop=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&buying=false&sharing=false" allow="autoplay" style="position:fixed;bottom:0;left:0;width:2px;height:2px;border:none;opacity:0.01"></iframe>
-<audio id="audioBackup" loop preload="auto" style="display:none">
+<audio id="bgMusic" autoplay loop preload="auto" style="display:none">
   <source src="https://cdn.pixabay.com/audio/2024/11/29/audio_2f81b813cd.mp3" type="audio/mpeg">
 </audio>
 
@@ -1148,20 +1147,18 @@ renderCart();
 renderSocialLinks();
 applyLang();
 
-// 点击页面触发音乐播放
-document.addEventListener('click', function() {
-  // 尝试 SoundCloud
-  var f = document.getElementById('musicFrame');
-  if (f && !f.dataset.played) {
-    f.dataset.played = '1';
-    var src = f.src;
-    f.src = '';
-    setTimeout(function() { f.src = src; }, 100);
-  }
-  // 尝试 audio 备选
-  var a = document.getElementById('audioBackup');
-  if (a) { a.volume = 0.3; a.play().catch(function(){}); }
-}, { once: true });
+// 背景音乐 - 低音量
+var bgMusic = document.getElementById('bgMusic');
+if (bgMusic) {
+  bgMusic.volume = 0.15;
+  bgMusic.play().catch(function() {
+    // 浏览器阻止自动播放，点击后播放
+    document.addEventListener('click', function() {
+      bgMusic.volume = 0.15;
+      bgMusic.play();
+    }, { once: true });
+  });
+}
 </script>
 </body>
 </html>
