@@ -600,7 +600,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 <!-- ═══════ BACKGROUND MUSIC ═══════ -->
 <!-- ═══════ BACKGROUND MUSIC ═══════ -->
 <div class="music-control">
-  <div class="music-hint" id="musicHint">Play Justin Bieber</div>
+  <div class="music-hint" id="musicHint">Play Music</div>
   <button class="music-btn" id="musicBtn" onclick="toggleMusic()">
     <div class="music-bars" id="musicBars" style="display:none"><span></span><span></span><span></span><span></span><span></span></div>
     <span id="musicIcon">♪</span>
@@ -1178,7 +1178,7 @@ let musicIframe = null;
 function createMusicPlayer() {
   musicIframe = document.createElement('iframe');
   musicIframe.style.cssText = 'position:fixed;bottom:0;right:0;width:0;height:0;border:none;opacity:0;pointer-events:none;';
-  musicIframe.src = 'https://music.163.com/outchain/player?type=0&id=7342151678&auto=0&height=0';
+  musicIframe.src = 'https://music.163.com/outchain/player?type=2&id=1421443440&auto=0&height=0';
   musicIframe.allow = 'autoplay';
   document.body.appendChild(musicIframe);
 }
@@ -1187,16 +1187,14 @@ function toggleMusic() {
   if (!musicIframe) createMusicPlayer();
   
   if (musicPlaying) {
-    // 暂停 - 重新加载并停止
     musicIframe.src = '';
     musicPlaying = false;
     musicBtn.classList.remove('playing');
     musicBars.style.display = 'none';
     musicIcon.style.display = 'inline';
-    musicHint.textContent = 'Play Justin Bieber';
+    musicHint.textContent = 'Play Music';
   } else {
-    // 播放
-    musicIframe.src = 'https://music.163.com/outchain/player?type=0&id=7342151678&auto=1&height=0';
+    musicIframe.src = 'https://music.163.com/outchain/player?type=2&id=1421443440&auto=1&height=0';
     musicPlaying = true;
     musicBtn.classList.add('playing');
     musicBars.style.display = 'flex';
