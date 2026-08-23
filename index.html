@@ -210,6 +210,17 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:250;display:none}
 .cart-overlay.open{display:block}
 
+/* LANG SWITCHER */
+.lang-switch{position:relative;display:inline-block}
+.lang-btn{padding:6px 14px;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:6px}
+.lang-btn:hover{border-color:var(--accent);color:var(--accent)}
+.lang-btn::after{content:'▾';font-size:.5rem}
+.lang-dropdown{position:absolute;top:100%;right:0;margin-top:4px;background:var(--surface);border:1px solid var(--border);min-width:140px;z-index:999;display:none;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.lang-dropdown.open{display:block}
+.lang-option{padding:10px 16px;font-size:.65rem;letter-spacing:.1em;cursor:pointer;transition:all .2s;display:block;color:var(--text-muted)}
+.lang-option:hover{background:var(--accent-dim);color:var(--accent)}
+.lang-option.active{color:var(--accent);background:var(--accent-dim)}
+
 /* ADMIN */
 .admin-login{position:fixed;inset:0;background:var(--bg);z-index:500;display:none;align-items:center;justify-content:center}
 .admin-login.show{display:flex}
@@ -310,12 +321,25 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 <nav class="nav" id="nav">
   <div class="nav-logo">Ciel-shop</div>
   <ul class="nav-center">
-    <li><a href="#collection">Collection</a></li>
-    <li><a href="#story">Story</a></li>
-    <li><a href="#craft">Craftsmanship</a></li>
-    <li><a href="#social">Social</a></li>
+    <li><a href="#collection" data-i18n="nav-collection">Collection</a></li>
+    <li><a href="#story" data-i18n="nav-story">Story</a></li>
+    <li><a href="#craft" data-i18n="nav-craft">Craftsmanship</a></li>
+    <li><a href="#social" data-i18n="nav-social">Social</a></li>
   </ul>
   <div class="nav-right">
+    <div class="lang-switch">
+      <button class="lang-btn" id="langBtn" onclick="document.getElementById('langDropdown').classList.toggle('open')">EN</button>
+      <div class="lang-dropdown" id="langDropdown">
+        <div class="lang-option active" onclick="setLang('en')">English</div>
+        <div class="lang-option" onclick="setLang('zh')">中文</div>
+        <div class="lang-option" onclick="setLang('fr')">Français</div>
+        <div class="lang-option" onclick="setLang('ja')">日本語</div>
+        <div class="lang-option" onclick="setLang('ko')">한국어</div>
+        <div class="lang-option" onclick="setLang('it')">Italiano</div>
+        <div class="lang-option" onclick="setLang('de')">Deutsch</div>
+        <div class="lang-option" onclick="setLang('es')">Español</div>
+      </div>
+    </div>
     <button class="icon-btn" onclick="toggleCart()" aria-label="Cart" style="position:relative">◇<span class="cart-count" id="cartCount" style="display:none">0</span></button>
     <div class="hamburger" onclick="document.querySelector('.nav-center').classList.toggle('mobile-open')">
       <span></span><span></span><span></span>
@@ -329,10 +353,10 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
     <img src="https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=1000&q=85" alt="Hero">
   </div>
   <div class="hero-content">
-    <p class="hero-tag">Autumn / Winter 2025</p>
-    <h1 class="hero-title">The Art of<br><em>Quiet Steps</em></h1>
-    <p class="hero-desc">Handcrafted in Tuscany with a reverence for material and form. Each pair is a study in restraint — where less becomes everything.</p>
-    <a href="#collection" class="btn-primary"><span>Explore Collection</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span></a>
+    <p class="hero-tag" data-i18n="hero-tag">Autumn / Winter 2025</p>
+    <h1 class="hero-title" data-i18n="hero-title" data-i18n-html>The Art of<br><em>Quiet Steps</em></h1>
+    <p class="hero-desc" data-i18n="hero-desc">Handcrafted in Tuscany with a reverence for material and form. Each pair is a study in restraint — where less becomes everything.</p>
+    <a href="#collection" class="btn-primary" data-i18n="btn-explore"><span>Explore Collection</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span></a>
   </div>
 </section>
 
@@ -354,19 +378,19 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 </div>
 
 <section class="section" id="collection">
-  <p class="section-tag reveal">Collection</p>
-  <h2 class="section-title reveal reveal-d1">Curated Selection</h2>
-  <p class="section-desc reveal reveal-d2">Each piece exists in a numbered series. When they're gone, they become memory.</p>
+  <p class="section-tag reveal" data-i18n="col-tag">Collection</p>
+  <h2 class="section-title reveal reveal-d1" data-i18n="col-title">Curated Selection</h2>
+  <p class="section-desc reveal reveal-d2" data-i18n="col-desc">Each piece exists in a numbered series. When they're gone, they become memory.</p>
   <div class="filter-bar reveal reveal-d3" id="filterBar"></div>
   <div class="products-grid" id="productsGrid"></div>
 </section>
 
 <section class="featured" id="story">
   <div class="featured-text">
-    <p class="section-tag reveal">Featured</p>
-    <h2 class="section-title reveal reveal-d1">Luna Collection</h2>
-    <p class="section-desc reveal reveal-d2">Inspired by the interplay of moonlight and shadow. Sculpted silhouettes in hand-dyed nappa leather, finished with our signature brushed gold hardware.</p>
-    <br><a href="#collection" class="btn-primary reveal reveal-d3"><span>View Collection</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span></a>
+    <p class="section-tag reveal" data-i18n="feat-tag">Featured</p>
+    <h2 class="section-title reveal reveal-d1" data-i18n="feat-title">Luna Collection</h2>
+    <p class="section-desc reveal reveal-d2" data-i18n="feat-desc">Inspired by the interplay of moonlight and shadow. Sculpted silhouettes in hand-dyed nappa leather, finished with our signature brushed gold hardware.</p>
+    <br><a href="#collection" class="btn-primary reveal reveal-d3" data-i18n="btn-view"><span>View Collection</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span></a>
   </div>
   <div class="featured-img">
     <img src="https://images.unsplash.com/photo-1549298916-b41d501d3772?w=900&q=85" alt="Luna" loading="lazy">
@@ -374,27 +398,27 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 </section>
 
 <section class="editorial">
-  <p class="section-tag reveal">Philosophy</p>
-  <blockquote class="reveal reveal-d1">Luxury is not about being noticed. It's about being remembered.</blockquote>
+  <p class="section-tag reveal" data-i18n="phil-tag">Philosophy</p>
+  <blockquote class="reveal reveal-d1" data-i18n="phil-quote">Luxury is not about being noticed. It's about being remembered.</blockquote>
   <cite class="reveal reveal-d2">— Vérité Studio, Firenze</cite>
 </section>
 
 <section class="section" id="craft">
-  <p class="section-tag reveal">Craftsmanship</p>
-  <h2 class="section-title reveal reveal-d1">Made to Endure</h2>
-  <p class="section-desc reveal reveal-d2">Six generations of Florentine leather mastery, distilled into every stitch and curve.</p>
+  <p class="section-tag reveal" data-i18n="craft-tag">Craftsmanship</p>
+  <h2 class="section-title reveal reveal-d1" data-i18n="craft-title">Made to Endure</h2>
+  <p class="section-desc reveal reveal-d2" data-i18n="craft-desc">Six generations of Florentine leather mastery, distilled into every stitch and curve.</p>
   <div class="craft-grid">
-    <div class="craft-card reveal"><span class="craft-icon">✦</span><h3 class="craft-title">Hand-Selected Hides</h3><p class="craft-desc">Each hide is personally inspected. Only the top 3% of natural grain leather meets our standard.</p></div>
-    <div class="craft-card reveal reveal-d1"><span class="craft-icon">◇</span><h3 class="craft-title">Blake Stitched</h3><p class="craft-desc">Single-sole construction that molds to your foot over time — a living garment.</p></div>
-    <div class="craft-card reveal reveal-d2"><span class="craft-icon">○</span><h3 class="craft-title">Patina by Hand</h3><p class="craft-desc">Up to 12 layers of pigment by hand, creating depth that machines cannot replicate.</p></div>
-    <div class="craft-card reveal reveal-d3"><span class="craft-icon">▽</span><h3 class="craft-title">Sustainable Always</h3><p class="craft-desc">Vegetable-tanned leathers, zero-waste cutting. Built to be resoled and loved for a lifetime.</p></div>
+    <div class="craft-card reveal"><span class="craft-icon">✦</span><h3 class="craft-title" data-i18n="c1-title">Hand-Selected Hides</h3><p class="craft-desc" data-i18n="c1-desc">Each hide is personally inspected. Only the top 3% of natural grain leather meets our standard.</p></div>
+    <div class="craft-card reveal reveal-d1"><span class="craft-icon">◇</span><h3 class="craft-title" data-i18n="c2-title">Blake Stitched</h3><p class="craft-desc" data-i18n="c2-desc">Single-sole construction that molds to your foot over time — a living garment.</p></div>
+    <div class="craft-card reveal reveal-d2"><span class="craft-icon">○</span><h3 class="craft-title" data-i18n="c3-title">Patina by Hand</h3><p class="craft-desc" data-i18n="c3-desc">Up to 12 layers of pigment by hand, creating depth that machines cannot replicate.</p></div>
+    <div class="craft-card reveal reveal-d3"><span class="craft-icon">▽</span><h3 class="craft-title" data-i18n="c4-title">Sustainable Always</h3><p class="craft-desc" data-i18n="c4-desc">Vegetable-tanned leathers, zero-waste cutting. Built to be resoled and loved for a lifetime.</p></div>
   </div>
 </section>
 
 <section class="social-banner" id="social">
-  <p class="section-tag reveal">Follow Us</p>
-  <h2 class="section-title reveal reveal-d1">Join the World of Ciel</h2>
-  <p class="section-desc reveal reveal-d2" style="margin:0 auto 40px;text-align:center">Follow us on social media for behind-the-scenes content, styling inspiration, and exclusive previews.</p>
+  <p class="section-tag reveal" data-i18n="social-tag">Follow Us</p>
+  <h2 class="section-title reveal reveal-d1" data-i18n="social-title">Join the World of Ciel</h2>
+  <p class="section-desc reveal reveal-d2" style="margin:0 auto 40px;text-align:center" data-i18n="social-desc">Follow us on social media for behind-the-scenes content, styling inspiration, and exclusive previews.</p>
   <div class="social-links reveal reveal-d3" id="socialLinks">
     <a href="#" target="_blank" class="social-link"><span class="s-icon">f</span>Facebook</a>
     <a href="#" target="_blank" class="social-link"><span class="s-icon">◎</span>Instagram</a>
@@ -404,13 +428,13 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 
 <section class="newsletter">
   <div>
-    <p class="section-tag reveal">Private Access</p>
-    <h2 class="section-title reveal reveal-d1" style="font-size:1.8rem">The Inner Circle</h2>
-    <p class="section-desc reveal reveal-d2">Early access to new collections, private atelier invitations, and stories from the workshop floor.</p>
+    <p class="section-tag reveal" data-i18n="nl-tag">Private Access</p>
+    <h2 class="section-title reveal reveal-d1" style="font-size:1.8rem" data-i18n="nl-title">The Inner Circle</h2>
+    <p class="section-desc reveal reveal-d2" data-i18n="nl-desc">Early access to new collections, private atelier invitations, and stories from the workshop floor.</p>
   </div>
-  <form class="nl-form reveal reveal-d2" onsubmit="event.preventDefault();showToast('Thank you. Welcome to the Inner Circle.')">
-    <input type="email" placeholder="Your email address" required>
-    <button type="submit">Subscribe</button>
+  <form class="nl-form reveal reveal-d2" onsubmit="event.preventDefault();showToast(getI18n('nl-thanks'))">
+    <input type="email" data-i18n-placeholder="nl-email" placeholder="Your email address" required>
+    <button type="submit" data-i18n="nl-btn">Subscribe</button>
   </form>
 </section>
 
@@ -418,19 +442,19 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
   <div class="footer-top">
     <div class="footer-brand">
       <div class="footer-logo">Ciel Luxury Footwear -U1 Studio</div>
-      <p>Luxury footwear born in Florence. Handcrafted with intention, designed without compromise.</p>
+      <p data-i18n="footer-desc">Luxury footwear born in Florence. Handcrafted with intention, designed without compromise.</p>
     </div>
     <div class="footer-col">
-      <h4>Shop</h4>
-      <ul><li><a href="#collection">New Arrivals</a></li><li><a href="#">Pumps</a></li><li><a href="#">Mules</a></li><li><a href="#">Boots</a></li><li><a href="#">Loafers</a></li></ul>
+      <h4 data-i18n="footer-shop">Shop</h4>
+      <ul><li><a href="#collection" data-i18n="footer-new">New Arrivals</a></li><li><a href="#" data-i18n="footer-pumps">Pumps</a></li><li><a href="#" data-i18n="footer-mules">Mules</a></li><li><a href="#" data-i18n="footer-boots">Boots</a></li><li><a href="#" data-i18n="footer-loafers">Loafers</a></li></ul>
     </div>
     <div class="footer-col">
-      <h4>House</h4>
-      <ul><li><a href="#story">Our Story</a></li><li><a href="#craft">Craftsmanship</a></li><li><a href="#">Sustainability</a></li><li><a href="#">Press</a></li></ul>
+      <h4 data-i18n="footer-house">House</h4>
+      <ul><li><a href="#story" data-i18n="footer-story">Our Story</a></li><li><a href="#craft" data-i18n="footer-craftsmanship">Craftsmanship</a></li><li><a href="#" data-i18n="footer-sustainability">Sustainability</a></li><li><a href="#" data-i18n="footer-press">Press</a></li></ul>
     </div>
     <div class="footer-col">
-      <h4>Support</h4>
-      <ul><li><a href="#">Size Guide</a></li><li><a href="#">Shipping</a></li><li><a href="#">Returns</a></li><li><a href="#">Contact</a></li></ul>
+      <h4 data-i18n="footer-support">Support</h4>
+      <ul><li><a href="#" data-i18n="footer-size">Size Guide</a></li><li><a href="#" data-i18n="footer-shipping">Shipping</a></li><li><a href="#" data-i18n="footer-returns">Returns</a></li><li><a href="#" data-i18n="footer-contact">Contact</a></li></ul>
     </div>
   </div>
   <div class="footer-bottom">
@@ -592,6 +616,249 @@ const ADMIN_PWD = 'admin123';
 function save() { localStorage.setItem('aurelis_products', JSON.stringify(products)); }
 function saveCart() { localStorage.setItem('aurelis_cart', JSON.stringify(cart)); }
 function persistContact() { localStorage.setItem('aurelis_contact', JSON.stringify(contact)); }
+
+/* ═══ I18N MULTILINGUAL SYSTEM ═══ */
+const LANGS = {
+  en: {
+    'nav-collection':'Collection','nav-story':'Story','nav-craft':'Craftsmanship','nav-social':'Social',
+    'hero-tag':'Autumn / Winter 2025',
+    'hero-title':'The Art of<br><em>Quiet Steps</em>',
+    'hero-desc':'Handcrafted in Tuscany with a reverence for material and form. Each pair is a study in restraint — where less becomes everything.',
+    'btn-explore':'<span>Explore Collection</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span>',
+    'col-tag':'Collection','col-title':'Curated Selection','col-desc':'Each piece exists in a numbered series. When they\'re gone, they become memory.',
+    'feat-tag':'Featured','feat-title':'Luna Collection','feat-desc':'Inspired by the interplay of moonlight and shadow. Sculpted silhouettes in hand-dyed nappa leather, finished with our signature brushed gold hardware.',
+    'btn-view':'<span>View Collection</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span>',
+    'phil-tag':'Philosophy','phil-quote':'Luxury is not about being noticed. It\'s about being remembered.',
+    'craft-tag':'Craftsmanship','craft-title':'Made to Endure','craft-desc':'Six generations of Florentine leather mastery, distilled into every stitch and curve.',
+    'c1-title':'Hand-Selected Hides','c1-desc':'Each hide is personally inspected. Only the top 3% of natural grain leather meets our standard.',
+    'c2-title':'Blake Stitched','c2-desc':'Single-sole construction that molds to your foot over time — a living garment.',
+    'c3-title':'Patina by Hand','c3-desc':'Up to 12 layers of pigment by hand, creating depth that machines cannot replicate.',
+    'c4-title':'Sustainable Always','c4-desc':'Vegetable-tanned leathers, zero-waste cutting. Built to be resoled and loved for a lifetime.',
+    'social-tag':'Follow Us','social-title':'Join the World of Ciel','social-desc':'Follow us on social media for behind-the-scenes content, styling inspiration, and exclusive previews.',
+    'nl-tag':'Private Access','nl-title':'The Inner Circle','nl-desc':'Early access to new collections, private atelier invitations, and stories from the workshop floor.',
+    'nl-email':'Your email address','nl-btn':'Subscribe','nl-thanks':'Thank you. Welcome to the Inner Circle.',
+    'footer-desc':'Luxury footwear born in Florence. Handcrafted with intention, designed without compromise.',
+    'footer-shop':'Shop','footer-new':'New Arrivals','footer-pumps':'Pumps','footer-mules':'Mules','footer-boots':'Boots','footer-loafers':'Loafers',
+    'footer-house':'House','footer-story':'Our Story','footer-craftsmanship':'Craftsmanship','footer-sustainability':'Sustainability','footer-press':'Press',
+    'footer-support':'Support','footer-size':'Size Guide','footer-shipping':'Shipping','footer-returns':'Returns','footer-contact':'Contact',
+    'cart-title':'Your Bag','cart-empty':'Your bag is empty','cart-total':'Total','cart-checkout':'Checkout','cart-checkout-soon':'Checkout coming soon!',
+    'btn-add':'Add to Bag','btn-details':'Details','modal-size':'Select Size',
+  },
+  zh: {
+    'nav-collection':'产品系列','nav-story':'品牌故事','nav-craft':'匠心工艺','nav-social':'社交关注',
+    'hero-tag':'2025 秋冬系列',
+    'hero-title':'静谧步履的<br><em>艺术</em>',
+    'hero-desc':'在托斯卡纳手工打造，对材质与形态的敬畏。每一双鞋都是克制的诠释——少即是多。',
+    'btn-explore':'<span>探索系列</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span>',
+    'col-tag':'产品系列','col-title':'精选臻品','col-desc':'每一件作品都是限量编号系列。售罄即成永恒记忆。',
+    'feat-tag':'精选推荐','feat-title':'Luna 月光系列','feat-desc':'灵感源自月光与阴影的交织。手工染色的纳帕皮廓形设计，搭配标志性拉丝金五金。',
+    'btn-view':'<span>查看系列</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span>',
+    'phil-tag':'品牌哲学','phil-quote':'奢华不在于被注目，而在于被铭记。',
+    'craft-tag':'匠心工艺','craft-title':'经久不衰','craft-desc':'六代佛罗伦萨皮革工艺传承，凝结于每一针一线。',
+    'c1-title':'精选皮革','c1-desc':'每张皮革经人工精选，仅3%的天然粒面皮革符合我们的标准。',
+    'c2-title':'Blake 缝线工艺','c2-desc':'单底缝合结构，随穿着逐渐贴合脚型——一件活的服饰。',
+    'c3-title':'手工着色','c3-desc':'多达12层手工涂色，营造机器无法复制的深邃质感。',
+    'c4-title':'始终可持续','c4-desc':'植物鞣制皮革，零浪费裁剪。为重新修缮和终身挚爱而打造。',
+    'social-tag':'关注我们','social-title':'加入 Ciel 的世界','social-desc':'关注我们的社交媒体，获取幕后内容、穿搭灵感和独家预览。',
+    'nl-tag':'专属通道','nl-title':'核心会员','nl-desc':'优先获取新品系列、私人工坊邀请和工坊故事。',
+    'nl-email':'您的邮箱地址','nl-btn':'订阅','nl-thanks':'感谢您，欢迎加入核心会员。',
+    'footer-desc':'诞生于佛罗伦萨的奢华鞋履。用心手造，毫不妥协。',
+    'footer-shop':'购物','footer-new':'新品上市','footer-pumps':'高跟鞋','footer-mules':'穆勒鞋','footer-boots':'靴子','footer-loafers':'乐福鞋',
+    'footer-house':'品牌','footer-story':'品牌故事','footer-craftsmanship':'匠心工艺','footer-sustainability':'可持续发展','footer-press':'媒体',
+    'footer-support':'客服','footer-size':'尺码指南','footer-shipping':'配送','footer-returns':'退换货','footer-contact':'联系我们',
+    'cart-title':'购物袋','cart-empty':'购物袋为空','cart-total':'合计','cart-checkout':'结算','cart-checkout-soon':'结算功能即将上线！',
+    'btn-add':'加入购物袋','btn-details':'查看详情','modal-size':'选择尺码',
+  },
+  fr: {
+    'nav-collection':'Collection','nav-story':'Histoire','nav-craft':'Artisanat','nav-social':'Social',
+    'hero-tag':'Automne / Hiver 2025',
+    'hero-title':'L\'Art des<br><em>Pas Silencieux</em>',
+    'hero-desc':'Fabriqué à la main en Toscane avec une révérence pour le matériau et la forme. Chaque paire est une étude de retenue.',
+    'btn-explore':'<span>Explorer la Collection</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span>',
+    'col-tag':'Collection','col-title':'Sélection Raffinée','col-desc':'Chaque pièce existe en série numérotée. Quand elles disparaissent, elles deviennent mémoire.',
+    'feat-tag':'En Vedette','feat-title':'Collection Luna','feat-desc':'Inspirée par l\'interaction de la lune et de l\'ombre. Silhouettes sculptées en nappa teint à la main.',
+    'btn-view':'<span>Voir la Collection</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span>',
+    'phil-tag':'Philosophie','phil-quote':'Le luxe ne consiste pas à être remarqué. Il s\'agit d\'être mémorisé.',
+    'craft-tag':'Artisanat','craft-title':'Fait pour Durer','craft-desc':'Six générations de maîtrise du cuir florentin, distillées dans chaque point et courbe.',
+    'c1-title':'Cuis Sélectionnés','c1-desc':'Chaque cuir est inspecté personnellement. Seuls les 3% supérieurs correspondent à notre standard.',
+    'c2-title':'Couture Blake','c2-desc':'Construction à semelle unique qui se modèle à votre pied avec le temps.',
+    'c3-title':'Patine à la Main','c3-desc':'Jusqu\'à 12 couches de pigment à la main, créant une profondeur que les machines ne peuvent reproduire.',
+    'c4-title':'Toujours Durable','c4-desc':'Cuirs tannés végétaux, découpe sans déchet. Conçu pour être ressemelé et aimé toute une vie.',
+    'social-tag':'Suivez-nous','social-title':'Rejoignez le Monde de Ciel','social-desc':'Suivez-nous pour du contenu en coulisses, de l\'inspiration stylée et des aperçus exclusifs.',
+    'nl-tag':'Accès Privé','nl-title':'Le Cercle Intérieur','nl-desc':'Accès anticipé aux nouvelles collections, invitations privées et histoires de l\'atelier.',
+    'nl-email':'Votre adresse email','nl-btn':'S\'abonner','nl-thanks':'Merci. Bienvenue dans le Cercle Intérieur.',
+    'footer-desc':'Chaussures de luxe nées à Florence. Artisanales avec intention, conçues sans compromis.',
+    'footer-shop':'Boutique','footer-new':'Nouveautés','footer-pumps':'Escarpins','footer-mules':'Mules','footer-boots':'Bottes','footer-loafers':'Mocassins',
+    'footer-house':'Maison','footer-story':'Notre Histoire','footer-craftsmanship':'Artisanat','footer-sustainability':'Durabilité','footer-press':'Presse',
+    'footer-support':'Support','footer-size':'Guide des Tailles','footer-shipping':'Livraison','footer-returns':'Retours','footer-contact':'Contact',
+    'cart-title':'Votre Sac','cart-empty':'Votre sac est vide','cart-total':'Total','cart-checkout':'Payer','cart-checkout-soon':'Le paiement arrive bientôt!',
+    'btn-add':'Ajouter au Sac','btn-details':'Détails','modal-size':'Choisir la Taille',
+  },
+  ja: {
+    'nav-collection':'コレクション','nav-story':'ストーリー','nav-craft':'クラフトマンシップ','nav-social':'ソーシャル',
+    'hero-tag':'2025 秋冬コレクション',
+    'hero-title':'静かな一歩の<br><em>芸術</em>',
+    'hero-desc':'トスカーナで手作り。素材とフォルムへの敬意を込めて。一足一足が抑制の美学を体現します。',
+    'btn-explore':'<span>コレクションを見る</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span>',
+    'col-tag':'コレクション','col-title':'キュレーション','col-desc':'各アイテムは限定ナンバーシリーズ。売り切れとなれば、それは記憶となります。',
+    'feat-tag':'フィーチャー','feat-title':'ルナコレクション','feat-desc':'月光と影の交差点からインスパイア。手染めナッパ革の彫刻的シルエット。',
+    'btn-view':'<span>コレクションを見る</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span>',
+    'phil-tag':'フィロソフィー','phil-quote':'贅華とは目立つことではない。記憶に残ることだ。',
+    'craft-tag':'クラフトマンシップ','craft-title':'永遠に耐える','craft-desc':'6世代のフィレンツェ革職人の技が、一針一縫いに凝縮されています。',
+    'c1-title':'厳選皮革','c1-desc':'一枚一枚を職人が検品。天然粒面革の上位3%のみが基準を満たします。',
+    'c2-title':'ブレイクステッチ','c2-desc':'単底構造が履くごとに足にフィット。生きた衣服のような存在。',
+    'c3-title':'手作業のパティーナ','c3-desc':'最大12層の手作業による着色。機械では再現できない深みを生み出します。',
+    'c4-title':'持続可能性','c4-desc':'植物タンニン鞣し、廃材ゼロカット。修繕し、生涯愛するために作られています。',
+    'social-tag':'フォローする','social-title':'Ciel の世界に参加','social-desc':'ソーシャルメディアで舞台裏、スタイリングのインスピレーション、限定プレビューをお届けします。',
+    'nl-tag':'プライベートアクセス','nl-title':'インナーサークル','nl-desc':'新コレクションへの先行アクセス、プライベート工房への招待、工房からの物語。',
+    'nl-email':'メールアドレス','nl-btn':'登録','nl-thanks':'ありがとうございます。インナーサークルへようこそ。',
+    'footer-desc':'フィレンツェ生まれのラグジュアリーフットウェア。意図を持って手作り、妥協なくデザイン。',
+    'footer-shop':'ショップ','footer-new':'新着','footer-pumps':'パンプス','footer-mules':'ミュール','footer-boots':'ブーツ','footer-loafers':'ローファー',
+    'footer-house':'ブランド','footer-story':'ブランドストーリー','footer-craftsmanship':'クラフトマンシップ','footer-sustainability':'サステナビリティ','footer-press':'プレス',
+    'footer-support':'サポート','footer-size':'サイズガイド','footer-shipping':'配送','footer-returns':'返品','footer-contact':'お問い合わせ',
+    'cart-title':'ショッピングバッグ','cart-empty':'バッグは空です','cart-total':'合計','cart-checkout':'レジに進む','cart-checkout-soon':'決済機能は近日公開！',
+    'btn-add':'バッグに入れる','btn-details':'詳細','modal-size':'サイズを選択',
+  },
+  ko: {
+    'nav-collection':'컬렉션','nav-story':'스토리','nav-craft':'장인정신','nav-social':'소셜',
+    'hero-tag':'2025 가을/겨울 컬렉션',
+    'hero-title':'고요한 걸음의<br><em>예술</em>',
+    'hero-desc':'토스카나에서 수작업으로 제작. 소재와 형태에 대한 경의. 한 켤레 한 켤레가 절제의 미학을 구현합니다.',
+    'btn-explore':'<span>컬렉션 보기</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span>',
+    'col-tag':'컬렉션','col-title':'큐레이션','col-desc':'각 작품은 한정 넘버 시리즈입니다. 품절되면 영원한 기억이 됩니다.',
+    'feat-tag':'추천','feat-title':'루나 컬렉션','feat-desc':'달빛과 그림자의 상호작용에서 영감. 손으로 염색한 나파 가죽의 조각적 실루엣.',
+    'btn-view':'<span>컬렉션 보기</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span>',
+    'phil-tag':'철학','phil-quote':'사치란 눈에 띄는 것이 아니다. 기억에 남는 것이다.',
+    'craft-tag':'장인정신','craft-title':'영원히 지속되는','craft-desc':'6대에 걸친 피렌체 가죽 장인의 기술이 한 땀 한 땀에 담겨 있습니다.',
+    'c1-title':'엄선된 가죽','c1-desc':'모든 가죽을 수작업으로 검사합니다. 천연 그레인 가죽의 상위 3%만이 기준을 충족합니다.',
+    'c2-title':'블레이크 스티치','c2-desc':'단일 밑창 구조가 시간이 지남에 따라 발에 맞춰집니다.',
+    'c3-title':'수작업 파티나','c3-desc':'최대 12겹의 수작업 안료. 기계로는 재현할 수 없는 깊이를 만듭니다.',
+    'c4-title':'지속가능한','c4-desc':'식물 태닝 가죽, 제로 웨이스트 커팅. 재창을 위해, 평생 사랑하기 위해 만들어졌습니다.',
+    'social-tag':'팔로우','social-title':'Ciel의 세계에 참여하세요','social-desc':'소셜 미디어에서 비하인드 스토리, 스타일링 영감, 독점 미리보기를 확인하세요.',
+    'nl-tag':'프라이빗 액세스','nl-title':'이너 서클','nl-desc':'신상 컬렉션 우선 액세스, 프라이빗 아틀리에 초대, 공방 이야기.',
+    'nl-email':'이메일 주소','nl-btn':'구독','nl-thanks':'감사합니다. 이너 서클에 오신 것을 환영합니다.',
+    'footer-desc':'피렌체에서 태어난 럭셔리 풋웨어. 의도를 가지고 수작업으로, 타협 없이 디자인.',
+    'footer-shop':'쇼핑','footer-new':'신상품','footer-pumps':'펌프스','footer-mules':'뮬','footer-boots':'부츠','footer-loafers':'로퍼',
+    'footer-house':'하우스','footer-story':'브랜드 스토리','footer-craftsmanship':'장인정신','footer-sustainability':'지속가능성','footer-press':'프레스',
+    'footer-support':'고객지원','footer-size':'사이즈 가이드','footer-shipping':'배송','footer-returns':'반품','footer-contact':'문의',
+    'cart-title':'쇼핑백','cart-empty':'쇼핑백이 비어 있습니다','cart-total':'합계','cart-checkout':'결제','cart-checkout-soon':'결제 기능이 곧 제공됩니다!',
+    'btn-add':'쇼핑백에 추가','btn-details':'상세정보','modal-size':'사이즈 선택',
+  },
+  it: {
+    'nav-collection':'Collezione','nav-story':'Storia','nav-craft':'Artigianato','nav-social':'Social',
+    'hero-tag':'Autunno / Inverno 2025',
+    'hero-title':'L\'Arte dei<br><em>Passi Silenziosi</em>',
+    'hero-desc':'Fatto a mano in Toscana con reverenza per il materiale e la forma. Ogni paio è uno studio di moderazione.',
+    'btn-explore':'<span>Esplora la Collezione</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span>',
+    'col-tag':'Collezione','col-title':'Selezione Curata','col-desc':'Ogni pezzo esiste in una serie numerata. Quando finiscono, diventano memoria.',
+    'feat-tag':'In Evidenza','feat-title':'Collezione Luna','feat-desc':'Ispirata dall\'interplay di luna e ombra. Silhouette scolpite in nappa tinta a mano.',
+    'btn-view':'<span>Vedi la Collezione</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span>',
+    'phil-tag':'Filosofia','phil-quote':'Il lusso non riguarda essere notati. Riguarda essere ricordati.',
+    'craft-tag':'Artigianato','craft-title':'Fatto per Durare','craft-desc':'Sei generazioni di maestria fiorentina del cuoio, distillate in ogni punto e curva.',
+    'c1-title':'Pelli Selezionate','c1-desc':'Ogni pelle è ispezionata personalmente. Solo il top 3% soddisfa il nostro standard.',
+    'c2-title':'Cucitura Blake','c2-desc':'Costruzione a suola singola che si modella al piede nel tempo.',
+    'c3-title':'Patina a Mano','c3-desc':'Fino a 12 strati di pigmento a mano, creando profondità che le macchine non possono replicare.',
+    'c4-title':'Sostenibile Sempre','c4-desc':'Cuoio conciato al vegetale, taglio a zero scarti. Progettato per essere risuolato e amato per tutta la vita.',
+    'social-tag':'Seguici','social-title':'Entra nel Mondo di Ciel','social-desc':'Seguici per contenuti dietro le quinte, ispirazione stilistica e anteprime esclusive.',
+    'nl-tag':'Accesso Privato','nl-title':'Il Cerchio Interno','nl-desc':'Accesso anticipato alle nuove collezioni, inviti privati all\'atelier e storie dal laboratorio.',
+    'nl-email':'Il tuo indirizzo email','nl-btn':'Iscriviti','nl-thanks':'Grazie. Benvenuto nel Cerchio Interno.',
+    'footer-desc':'Calzature di lusso nate a Firenze. Fatte a mano con intenzione, progettate senza compromessi.',
+    'footer-shop':'Shop','footer-new':'Novità','footer-pumps':'Décolleté','footer-mules':'Mule','footer-boots':'Stivali','footer-loafers':'Mocassini',
+    'footer-house':'Casa','footer-story':'La Nostra Storia','footer-craftsmanship':'Artigianato','footer-sustainability':'Sostenibilità','footer-press':'Stampa',
+    'footer-support':'Supporto','footer-size':'Guida alle Taglie','footer-shipping':'Spedizione','footer-returns':'Resi','footer-contact':'Contatti',
+    'cart-title':'La Tua Borsa','cart-empty':'La tua borsa è vuota','cart-total':'Totale','cart-checkout':'Acquista','cart-checkout-soon':'Il pagamento arriva presto!',
+    'btn-add':'Aggiungi alla Borsa','btn-details':'Dettagli','modal-size':'Seleziona Taglia',
+  },
+  de: {
+    'nav-collection':'Kollektion','nav-story':'Geschichte','nav-craft':'Handwerkskunst','nav-social':'Social',
+    'hero-tag':'Herbst / Winter 2025',
+    'hero-title':'Die Kunst der<br><em>Stillen Schritte</em>',
+    'hero-desc':'Handgefertigt in der Toskana mit Ehrfurcht vor Material und Form. Jedes Paar ist eine Studie der Zurückhaltung.',
+    'btn-explore':'<span>Kollektion Entdecken</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span>',
+    'col-tag':'Kollektion','col-title':'Kuratierte Auswahl','col-desc':'Jedes Stück existiert in einer nummerierten Serie. Wenn sie weg sind, werden sie zur Erinnerung.',
+    'feat-tag':'Empfohlen','feat-title':'Luna Kollektion','feat-desc':'Inspiriert vom Zusammenspiel von Mondlicht und Schatten. Skulpturale Silhouetten aus handgefärbtem Nappaleder.',
+    'btn-view':'<span>Kollektion Ansehen</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span>',
+    'phil-tag':'Philosophie','phil-quote':'Luxus geht nicht darum, bemerkt zu werden. Es geht darum, in Erinnerung zu bleiben.',
+    'craft-tag':'Handwerkskunst','craft-title':'Für die Ewigkeit','craft-desc':'Sechs Generationen florentinischer Ledermeisterschaft, destilliert in jede Naht und Kurve.',
+    'c1-title':'Handverlesene Häute','c1-desc':'Jede Haut wird persönlich inspiziert. Nur die obersten 3% erfüllen unseren Standard.',
+    'c2-title':'Blake Genäht','c2-desc':'Einschuhsohlen-Konstruktion, die sich im Laufe der Zeit an Ihren Fuß anpasst.',
+    'c3-title':'Patina von Hand','c3-desc':'Bis zu 12 Schichten Pigment von Hand, die eine Tiefe schaffen, die Maschinen nicht replizieren können.',
+    'c4-title':'Immer Nachhaltig','c4-desc':'Pflanzlich gegerbte Leder, Null-Abfall-Zuschnitt. Gebaut, um neu besohlt und ein Leben lang geliebt zu werden.',
+    'social-tag':'Folge Uns','social-title':'Tritt der Welt von Ciel Bei','social-desc':'Folge uns für Behind-the-Scenes, Styling-Inspiration und exklusive Einblicke.',
+    'nl-tag':'Privater Zugang','nl-title':'Der Innere Kreis','nl-desc':'Frühzugang zu neuen Kollektionen, private Atelier-Einladungen und Geschichten aus der Werkstatt.',
+    'nl-email':'Deine E-Mail-Adresse','nl-btn':'Abonnieren','nl-thanks':'Danke. Willkommen im Inneren Kreis.',
+    'footer-desc':'In Florenz geborener Luxus-Schuh. Handgefertigt mit Absicht, ohne Kompromisse gestaltet.',
+    'footer-shop':'Shop','footer-new':'Neuheiten','footer-pumps':'Pumps','footer-mules':'Mules','footer-boots':'Stiefel','footer-loafers':'Loafer',
+    'footer-house':'Haus','footer-story':'Unsere Geschichte','footer-craftsmanship':'Handwerkskunst','footer-sustainability':'Nachhaltigkeit','footer-press':'Presse',
+    'footer-support':'Support','footer-size':'Größenratgeber','footer-shipping':'Versand','footer-returns':'Rückgabe','footer-contact':'Kontakt',
+    'cart-title':'Deine Tasche','cart-empty':'Deine Tasche ist leer','cart-total':'Gesamt','cart-checkout':'Kasse','cart-checkout-soon':'Die Kasse kommt bald!',
+    'btn-add':'In die Tasche','btn-details':'Details','modal-size':'Größe Wählen',
+  },
+  es: {
+    'nav-collection':'Colección','nav-story':'Historia','nav-craft':'Artesanía','nav-social':'Social',
+    'hero-tag':'Otoño / Invierno 2025',
+    'hero-title':'El Arte de los<br><em>Pasos Silenciosos</em>',
+    'hero-desc':'Hecho a mano en Toscana con reverencia por el material y la forma. Cada par es un estudio de contención.',
+    'btn-explore':'<span>Explorar Colección</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span>',
+    'col-tag':'Colección','col-title':'Selección Curada','col-desc':'Cada pieza existe en una serie numerada. Cuando se van, se convierten en memoria.',
+    'feat-tag':'Destacado','feat-title':'Colección Luna','feat-desc':'Inspirada en la interacción de la luz de la luna y la sombra. Siluetas esculpidas en nappa teñido a mano.',
+    'btn-view':'<span>Ver Colección</span><span style="width:40px;height:1px;background:currentColor;display:inline-block"></span>',
+    'phil-tag':'Filosofía','phil-quote':'El lujo no se trata de ser notado. Se trata de ser recordado.',
+    'craft-tag':'Artesanía','craft-title':'Hecho para Durar','craft-desc':'Seis generaciones de maestría en cuero florentino, destiladas en cada puntada y curva.',
+    'c1-title':'Cueros Seleccionados','c1-desc':'Cada cuero es inspeccionado personalmente. Solo el 3% superior cumple nuestro estándar.',
+    'c2-title':'Costura Blake','c2-desc':'Construcción de suela única que se moldea a tu pie con el tiempo.',
+    'c3-title':'Pátina a Mano','c3-desc':'Hasta 12 capas de pigmento a mano, creando profundidad que las máquinas no pueden replicar.',
+    'c4-title':'Siempre Sostenible','c4-desc':'Cueros curtidos vegetales, corte de desperdicio cero. Diseñado para ser resuelto y amado de por vida.',
+    'social-tag':'Síguenos','social-title':'Únete al Mundo de Ciel','social-desc':'Síguenos en redes sociales para contenido tras bastidores, inspiración de estilo y vistas previas exclusivas.',
+    'nl-tag':'Acceso Privado','nl-title':'El Círculo Interior','nl-desc':'Acceso anticipado a nuevas colecciones, invitaciones privadas al taller e historias del taller.',
+    'nl-email':'Tu correo electrónico','nl-btn':'Suscribirse','nl-thanks':'Gracias. Bienvenido al Círculo Interior.',
+    'footer-desc':'Calzado de lujo nacido en Florencia. Hecho a mano con intención, diseñado sin compromiso.',
+    'footer-shop':'Tienda','footer-new':'Novedades','footer-pumps':'Zapatos de Tacón','footer-mules':'Mulas','footer-boots':'Botas','footer-loafers':'Mocasines',
+    'footer-house':'Casa','footer-story':'Nuestra Historia','footer-craftsmanship':'Artesanía','footer-sustainability':'Sostenibilidad','footer-press':'Prensa',
+    'footer-support':'Soporte','footer-size':'Guía de Tallas','footer-shipping':'Envío','footer-returns':'Devoluciones','footer-contact':'Contacto',
+    'cart-title':'Tu Bolsa','cart-empty':'Tu bolsa está vacía','cart-total':'Total','cart-checkout':'Pagar','cart-checkout-soon':'¡El pago estará disponible pronto!',
+    'btn-add':'Añadir a la Bolsa','btn-details':'Detalles','modal-size':'Seleccionar Talla',
+  },
+};
+
+let currentLang = localStorage.getItem('aurelis_lang') || 'en';
+
+function getI18n(key) {
+  return (LANGS[currentLang] && LANGS[currentLang][key]) || (LANGS.en[key]) || key;
+}
+
+function applyLang() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = getI18n(key);
+    if (el.hasAttribute('data-i18n-html')) el.innerHTML = val;
+    else el.textContent = val;
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = getI18n(el.getAttribute('data-i18n-placeholder'));
+  });
+  // 更新语言按钮文字
+  const labels = { en:'EN', zh:'中文', fr:'FR', ja:'日本', ko:'한국', it:'IT', de:'DE', es:'ES' };
+  document.getElementById('langBtn').textContent = labels[currentLang] || 'EN';
+  // 更新下拉菜单 active 状态
+  document.querySelectorAll('.lang-option').forEach(el => {
+    el.classList.toggle('active', el.getAttribute('onclick').includes("'" + currentLang + "'"));
+  });
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('aurelis_lang', lang);
+  applyLang();
+  document.getElementById('langDropdown').classList.remove('open');
+}
+
+// 点击页面其他地方关闭语言下拉菜单
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.lang-switch')) {
+    document.getElementById('langDropdown').classList.remove('open');
+  }
+});
 
 // 生成 WhatsApp 链接
 function getWhatsAppUrl(number) {
@@ -869,6 +1136,7 @@ renderFilters();
 renderProducts();
 renderCart();
 renderSocialLinks();
+applyLang();
 </script>
 </body>
 </html>
