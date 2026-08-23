@@ -565,14 +565,27 @@ const DEFAULT_PRODUCTS = [
   {id:'p6',name:'Noir Boot',sub:'Suede · Knee High',price:21800,oldPrice:0,category:'Boots',badge:'',image:'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=600&q=80',desc:'A statement knee-high in rich Italian suede.',details:'Material: Italian Suede\nHeight: Knee\nMade in: Italy',sizes:'36,37,38,39,40',status:'published'}
 ];
 
-let products = JSON.parse(localStorage.getItem('aurelis_products'));
-if (!products || !products.length) { products = DEFAULT_PRODUCTS; save(); }
-let cart = JSON.parse(localStorage.getItem('aurelis_cart')) || [];
+// 安全解析 localStorage（防止旧数据损坏导致脚本崩溃）
+function safeParse(str, fallback) {
+  try {
+    if (!str) return fallback;
+    const val = JSON.parse(str);
+    return (val === null || val === undefined) ? fallback : val;
+  } catch (e) {
+    return fallback;
+  }
+}
+
+let products = safeParse(localStorage.getItem('aurelis_products'), null);
+if (!products || !products.length) { products = DEFAULT_PRODUCTS.slice(); save(); }
+let cart = safeParse(localStorage.getItem('aurelis_cart'), []);
 
 // 联系方式配置（后台可修改）
 const DEFAULT_CONTACT = { facebook: 'https://www.facebook.com/yourpage', instagram: 'https://www.instagram.com/yourname', whatsapp: '8613800138000' };
-let contact = JSON.parse(localStorage.getItem('aurelis_contact'));
-if (!contact || typeof contact !== 'object') { contact = { ...DEFAULT_CONTACT }; saveContact(); }
+let contact = safeParse(localStorage.getItem('aurelis_contact'), {});
+// 合并默认值，确保所有字段存在
+contact = { ...DEFAULT_CONTACT, ...contact };
+saveContact();
 
 const ADMIN_PWD = 'admin123';
 
