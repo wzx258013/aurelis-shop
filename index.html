@@ -583,6 +583,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 <div class="msg-toast" id="toast"></div>
 
 <!-- ═══════ BACKGROUND MUSIC ═══════ -->
+<iframe id="bgMusic" src="https://player.bilibili.com/player.html?bvid=BV1x741187kS&autoplay=1&loop=1&muted=0&page=1" allow="autoplay" style="position:fixed;bottom:0;left:0;width:1px;height:1px;border:none;opacity:0.01;z-index:-1" scrolling="no" frameborder="0" allowfullscreen="true"></iframe>
 
 <script>
 const DEFAULT_PRODUCTS = [
@@ -1143,113 +1144,17 @@ renderCart();
 renderSocialLinks();
 applyLang();
 
-// 背景音乐 - 高端氛围音乐（国内外通用）
-(function(){
-  var ctx,master,playing=false;
-
-  function startMusic(){
-    if(playing)return;
-    if(!ctx)ctx=new(window.AudioContext||window.webkitAudioContext)();
-    if(ctx.state==='suspended')ctx.resume();
-    playing=true;
-
-    master=ctx.createGain();
-    master.gain.value=0.15;
-    master.connect(ctx.destination);
-
-    // 混响
-    var conv=ctx.createConvolver(),rg=ctx.createGain();
-    rg.gain.value=0.3;
-    var sr=ctx.sampleRate,imp=ctx.createBuffer(2,sr*2.5,sr);
-    for(var c=0;c<2;c++){var d=imp.getChannelData(c);for(var i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);}
-    conv.buffer=imp;master.connect(conv);conv.connect(rg);rg.connect(ctx.destination);
-
-    var bpm=75,beat=60/bpm,bar=beat*16,t=ctx.currentTime+0.2;
-
-    // 和弦 Cmaj7-Am7-Fmaj7-G7 循环
-    var chords=[[261.63,329.63,392,493.88],[220,261.63,329.63,392],[174.61,220,261.63,329.63],[196,246.94,293.66,349.23]];
-
-    // 旋律
-    var melody=[
-      [659.25,0],[783.99,1],[880,2],[783.99,3],[659.25,4],[587.33,5],[523.25,6],[587.33,7],
-      [659.25,8],[783.99,9],[880,10],[1046.5,11],[880,12],[783.99,13],[659.25,14],[587.33,15]
-    ];
-
-    function playBar(bt,ci){
-      var ch=chords[ci%4];
-
-      // Pad 和弦
-      ch.forEach(function(f){
-        var o=ctx.createOscillator(),g=ctx.createGain(),fl=ctx.createBiquadFilter();
-        o.type='sine';o.frequency.value=f;
-        fl.type='lowpass';fl.frequency.value=500;
-        g.gain.setValueAtTime(0,bt);g.gain.linearRampToValueAtTime(0.05,bt+1);
-        g.gain.setValueAtTime(0.05,bt+bar-2);g.gain.linearRampToValueAtTime(0,bt+bar);
-        o.connect(fl);fl.connect(g);g.connect(master);
-        o.start(bt);o.stop(bt+bar+0.5);
-      });
-
-      // 贝斯
-      var bo=ctx.createOscillator(),bg=ctx.createGain();
-      bo.type='sine';bo.frequency.value=ch[0]/4;
-      bg.gain.setValueAtTime(0.1,bt);bg.gain.setValueAtTime(0.1,bt+bar-0.5);bg.gain.linearRampToValueAtTime(0,bt+bar);
-      bo.connect(bg);bg.connect(master);bo.start(bt);bo.stop(bt+bar+0.5);
-
-      // 鼓
-      for(var i=0;i<16;i++){
-        var st=bt+i*beat;
-        if(i%4===0){// kick
-          var ko=ctx.createOscillator(),kg=ctx.createGain();
-          ko.type='sine';ko.frequency.setValueAtTime(120,st);ko.frequency.exponentialRampToValueAtTime(30,st+0.12);
-          kg.gain.setValueAtTime(0.15,st);kg.gain.exponentialRampToValueAtTime(0.001,st+0.2);
-          ko.connect(kg);kg.connect(master);ko.start(st);ko.stop(st+0.25);
-        }
-        if(i===4||i===12){// snare
-          var nb=ctx.createBuffer(1,ctx.sampleRate*0.08,ctx.sampleRate),nd=nb.getChannelData(0);
-          for(var j=0;j<nd.length;j++)nd[j]=(Math.random()*2-1);
-          var ns=ctx.createBufferSource(),ng=ctx.createGain(),nf=ctx.createBiquadFilter();
-          ns.buffer=nb;nf.type='bandpass';nf.frequency.value=3000;
-          ng.gain.setValueAtTime(0.08,st);ng.gain.exponentialRampToValueAtTime(0.001,st+0.08);
-          ns.connect(nf);nf.connect(ng);ng.connect(master);ns.start(st);
-        }
-        // hihat
-        var hb=ctx.createBuffer(1,ctx.sampleRate*0.03,ctx.sampleRate),hd=hb.getChannelData(0);
-        for(var j=0;j<hd.length;j++)hd[j]=(Math.random()*2-1);
-        var hs=ctx.createBufferSource(),hg=ctx.createGain(),hf=ctx.createBiquadFilter();
-        hs.buffer=hb;hf.type='highpass';hf.frequency.value=8000;
-        hg.gain.setValueAtTime(0.025,st);hg.gain.exponentialRampToValueAtTime(0.001,st+0.03);
-        hs.connect(hf);hf.connect(hg);hg.connect(master);hs.start(st);
-      }
-
-      // 旋律
-      melody.forEach(function(n){
-        var mo=ctx.createOscillator(),mg=ctx.createGain(),mf=ctx.createBiquadFilter();
-        mo.type='triangle';mo.frequency.value=n[0];
-        mf.type='lowpass';mf.frequency.value=2000;
-        var mt=bt+n[1]*beat;
-        mg.gain.setValueAtTime(0,mt);mg.gain.linearRampToValueAtTime(0.06,mt+0.02);
-        mg.gain.exponentialRampToValueAtTime(0.001,mt+beat*1.5);
-        mo.connect(mf);mf.connect(mg);mg.connect(master);
-        mo.start(mt);mo.stop(mt+beat*2);
-      });
-    }
-
-    // 安排8个小节并循环
-    for(var b=0;b<8;b++)playBar(t+b*bar,b);
-
-    var total=8*bar;
-    setTimeout(function(){if(playing)startLoop();},(total-2)*1000);
-
-    function startLoop(){
-      if(!playing)return;
-      var t2=ctx.currentTime+0.1;
-      for(var b=0;b<8;b++)playBar(t2+b*bar,b);
-      setTimeout(function(){if(playing)startLoop();},(total-2)*1000);
-    }
+// 背景音乐 - 用户首次点击后播放 Bilibili Intentions
+document.addEventListener('click', function() {
+  var f = document.getElementById('bgMusic');
+  if (f && !f.dataset.played) {
+    f.dataset.played = '1';
+    // 重新加载触发播放
+    var src = f.src;
+    f.src = '';
+    setTimeout(function() { f.src = src; }, 100);
   }
-
-  document.addEventListener('click',function(){startMusic();},{once:true});
-})();
+}, { once: true });
 </script>
 </body>
 </html>
