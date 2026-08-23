@@ -237,7 +237,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 @keyframes musicPulse{0%,100%{box-shadow:0 0 0 0 rgba(201,169,110,.3)}50%{box-shadow:0 0 0 8px rgba(201,169,110,0)}}
 .music-hint{font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);background:rgba(19,19,13,.85);padding:8px 14px;border-radius:20px;border:1px solid var(--border);backdrop-filter:blur(10px);white-space:nowrap;opacity:0;transform:translateX(10px);transition:all .4s var(--ease);pointer-events:none}
 .music-control:hover .music-hint{opacity:1;transform:translateX(0)}
-#musicFrame{position:fixed;bottom:80px;right:32px;z-index:998;width:330px;height:66px;border:none;border-radius:8px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+#musicFrame{position:fixed;bottom:24px;right:24px;z-index:998;width:330px;height:66px;border:none;border-radius:8px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.6)}
 
 /* ADMIN */
 .admin-login{position:fixed;inset:0;background:var(--bg);z-index:500;display:none;align-items:center;justify-content:center}
@@ -599,8 +599,8 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 
 <!-- ═══════ BACKGROUND MUSIC ═══════ -->
 <!-- ═══════ BACKGROUND MUSIC ═══════ -->
-<iframe id="musicFrame" src="https://music.163.com/outchain/player?type=2&id=1421443440&auto=1&height=66" allow="autoplay" style="position:fixed;bottom:0;right:0;width:0;height:0;border:none;opacity:0"></iframe>
-<div class="music-control">
+<iframe id="musicFrame" src="https://music.163.com/outchain/player?type=2&id=1421443440&auto=1&height=66" allow="autoplay"></iframe>
+<div class="music-control" style="display:none">
   <button class="music-btn" id="musicBtn" onclick="var f=document.getElementById('musicFrame');if(f.src){f.dataset.src=f.src;f.src='';this.classList.remove('playing')}else{f.src=f.dataset.src||'https://music.163.com/outchain/player?type=2&id=1421443440&auto=1&height=66';this.classList.add('playing')}">
     <div class="music-bars" id="musicBars"><span></span><span></span><span></span><span></span><span></span></div>
     <span id="musicIcon" style="display:none">♪</span>
