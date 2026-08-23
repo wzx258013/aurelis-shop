@@ -585,13 +585,13 @@ const DEFAULT_CONTACT = { facebook: 'https://www.facebook.com/yourpage', instagr
 let contact = safeParse(localStorage.getItem('aurelis_contact'), {});
 // 合并默认值，确保所有字段存在
 contact = { ...DEFAULT_CONTACT, ...contact };
-saveContact();
+persistContact();
 
 const ADMIN_PWD = 'admin123';
 
 function save() { localStorage.setItem('aurelis_products', JSON.stringify(products)); }
 function saveCart() { localStorage.setItem('aurelis_cart', JSON.stringify(cart)); }
-function saveContact() { localStorage.setItem('aurelis_contact', JSON.stringify(contact)); }
+function persistContact() { localStorage.setItem('aurelis_contact', JSON.stringify(contact)); }
 
 // 生成 WhatsApp 链接
 function getWhatsAppUrl(number) {
@@ -837,7 +837,7 @@ function saveContact() {
   contact.facebook = document.getElementById('cFacebook').value.trim();
   contact.instagram = document.getElementById('cInstagram').value.trim();
   contact.whatsapp = document.getElementById('cWhatsapp').value.trim();
-  saveContact();
+  persistContact();
   closeContactForm();
   renderSocialLinks();
   showToast('Contact settings saved');
