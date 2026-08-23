@@ -598,7 +598,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 <div class="msg-toast" id="toast"></div>
 
 <!-- ═══════ BACKGROUND MUSIC ═══════ -->
-<div id="ytPlayer"></div>
+<!-- ═══════ BACKGROUND MUSIC ═══════ -->
 <div class="music-control">
   <div class="music-hint" id="musicHint">Play Justin Bieber</div>
   <button class="music-btn" id="musicBtn" onclick="toggleMusic()">
@@ -606,8 +606,6 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
     <span id="musicIcon">♪</span>
   </button>
 </div>
-
-<script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
 const DEFAULT_PRODUCTS = [
@@ -1168,74 +1166,37 @@ renderCart();
 renderSocialLinks();
 applyLang();
 
-/* ═══ YOUTUBE MUSIC PLAYER ═══ */
-let ytPlayer = null;
-let musicPlaying = false;
-let currentVideoIndex = 0;
-
-// Justin Bieber 热门歌曲视频 ID
-const JB_SONGS = [
-  'fJ9rUzIMcZQ', // Sorry
-  'ojR_-5RVLfE', // Love Yourself
-  'tQ0yjYUFKAE', // Peaches
-  'kTJczUoc26U', // Stay (with Kid Laroi)
-  'pB-4Iqc6M8I', // Boyfriend
-  'DK_0jXPuIr0', // What Do You Mean
-  '8EJ3zbKTWQs', // Yummy
-  'YqeW9_5kURI', // As Long As You Love Me
-  'nYh-n7EOtMA', // Baby
-  'II2_wp0004Q', // Intentions
-  'RgKAFK5djSk', // Let Me Love You
-  'WxL1MnYjYtg', // Ghost
-];
-
-function onYouTubeIframeAPIReady() {
-  ytPlayer = new YT.Player('ytPlayer', {
-    height: '1',
-    width: '1',
-    videoId: JB_SONGS[0],
-    playerVars: {
-      autoplay: 0,
-      controls: 0,
-      modestbranding: 1,
-      rel: 0,
-      fs: 0,
-      iv_load_policy: 3,
-    },
-    events: {
-      onReady: function() {
-        ytPlayer.setVolume(40);
-      },
-      onStateChange: function(e) {
-        if (e.data === YT.PlayerState.ENDED) {
-          // 播放下一首
-          currentVideoIndex = (currentVideoIndex + 1) % JB_SONGS.length;
-          ytPlayer.loadVideoById(JB_SONGS[currentVideoIndex]);
-        }
-      }
-    }
-  });
-}
-
+/* ═══ MUSIC PLAYER - 网易云音乐 ═══ */
 const musicBtn = document.getElementById('musicBtn');
 const musicBars = document.getElementById('musicBars');
 const musicIcon = document.getElementById('musicIcon');
 const musicHint = document.getElementById('musicHint');
+let musicPlaying = false;
+let musicIframe = null;
+
+// 创建隐藏的网易云音乐播放器
+function createMusicPlayer() {
+  musicIframe = document.createElement('iframe');
+  musicIframe.style.cssText = 'position:fixed;bottom:0;right:0;width:0;height:0;border:none;opacity:0;pointer-events:none;';
+  musicIframe.src = 'https://music.163.com/outchain/player?type=0&id=7342151678&auto=0&height=0';
+  musicIframe.allow = 'autoplay';
+  document.body.appendChild(musicIframe);
+}
 
 function toggleMusic() {
-  if (!ytPlayer || !ytPlayer.playVideo) {
-    setTimeout(toggleMusic, 500);
-    return;
-  }
+  if (!musicIframe) createMusicPlayer();
+  
   if (musicPlaying) {
-    ytPlayer.pauseVideo();
+    // 暂停 - 重新加载并停止
+    musicIframe.src = '';
     musicPlaying = false;
     musicBtn.classList.remove('playing');
     musicBars.style.display = 'none';
     musicIcon.style.display = 'inline';
     musicHint.textContent = 'Play Justin Bieber';
   } else {
-    ytPlayer.playVideo();
+    // 播放
+    musicIframe.src = 'https://music.163.com/outchain/player?type=0&id=7342151678&auto=1&height=0';
     musicPlaying = true;
     musicBtn.classList.add('playing');
     musicBars.style.display = 'flex';
@@ -1244,15 +1205,9 @@ function toggleMusic() {
   }
 }
 
+// 用户首次点击后自动播放
 document.addEventListener('click', function autoPlay() {
-  if (!musicPlaying && ytPlayer && ytPlayer.playVideo) {
-    ytPlayer.playVideo();
-    musicPlaying = true;
-    musicBtn.classList.add('playing');
-    musicBars.style.display = 'flex';
-    musicIcon.style.display = 'none';
-    musicHint.textContent = 'Pause Music';
-  }
+  if (!musicPlaying) toggleMusic();
 }, { once: true });
 </script>
 </body>
