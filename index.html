@@ -583,7 +583,6 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 <div class="msg-toast" id="toast"></div>
 
 <!-- ═══════ BACKGROUND MUSIC ═══════ -->
-<!-- ═══════ BACKGROUND MUSIC ═══════ -->
 
 <script>
 const DEFAULT_PRODUCTS = [
@@ -1144,158 +1143,112 @@ renderCart();
 renderSocialLinks();
 applyLang();
 
-// 背景音乐 - Web Audio API 生成高端氛围音乐
-(function() {
-  var ctx = null;
-  var playing = false;
+// 背景音乐 - 高端氛围音乐（国内外通用）
+(function(){
+  var ctx,master,playing=false;
 
-  function initMusic() {
-    if (ctx) return;
-    ctx = new (window.AudioContext || window.webkitAudioContext)();
-    var master = ctx.createGain();
-    master.gain.value = 0.12;
+  function startMusic(){
+    if(playing)return;
+    if(!ctx)ctx=new(window.AudioContext||window.webkitAudioContext)();
+    if(ctx.state==='suspended')ctx.resume();
+    playing=true;
+
+    master=ctx.createGain();
+    master.gain.value=0.15;
     master.connect(ctx.destination);
 
     // 混响
-    var conv = ctx.createConvolver();
-    var revGain = ctx.createGain();
-    revGain.gain.value = 0.25;
-    var sr = ctx.sampleRate;
-    var imp = ctx.createBuffer(2, sr * 3, sr);
-    for (var ch = 0; ch < 2; ch++) {
-      var d = imp.getChannelData(ch);
-      for (var i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 1.8);
-    }
-    conv.buffer = imp;
-    master.connect(conv);
-    conv.connect(revGain);
-    revGain.connect(ctx.destination);
+    var conv=ctx.createConvolver(),rg=ctx.createGain();
+    rg.gain.value=0.3;
+    var sr=ctx.sampleRate,imp=ctx.createBuffer(2,sr*2.5,sr);
+    for(var c=0;c<2;c++){var d=imp.getChannelData(c);for(var i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);}
+    conv.buffer=imp;master.connect(conv);conv.connect(rg);rg.connect(ctx.destination);
 
-    // 和弦进行 Cmaj7 - Am7 - Fmaj7 - G
-    var chords = [
-      [130.81, 164.81, 196.00, 246.94],
-      [110.00, 130.81, 164.81, 196.00],
-      [87.31, 110.00, 130.81, 164.81],
-      [98.00, 123.47, 146.83, 196.00]
+    var bpm=75,beat=60/bpm,bar=beat*16,t=ctx.currentTime+0.2;
+
+    // 和弦 Cmaj7-Am7-Fmaj7-G7 循环
+    var chords=[[261.63,329.63,392,493.88],[220,261.63,329.63,392],[174.61,220,261.63,329.63],[196,246.94,293.66,349.23]];
+
+    // 旋律
+    var melody=[
+      [659.25,0],[783.99,1],[880,2],[783.99,3],[659.25,4],[587.33,5],[523.25,6],[587.33,7],
+      [659.25,8],[783.99,9],[880,10],[1046.5,11],[880,12],[783.99,13],[659.25,14],[587.33,15]
     ];
 
-    var bpm = 72;
-    var beat = 60 / bpm;
-    var barLen = beat * 4;
-    var t = ctx.currentTime + 0.1;
-
-    function pad(freq, start, dur) {
-      var o = ctx.createOscillator();
-      var g = ctx.createGain();
-      var f = ctx.createBiquadFilter();
-      o.type = 'sine'; o.frequency.value = freq;
-      f.type = 'lowpass'; f.frequency.value = 600;
-      g.gain.setValueAtTime(0, start);
-      g.gain.linearRampToValueAtTime(0.06, start + 0.5);
-      g.gain.setValueAtTime(0.06, start + dur - 1);
-      g.gain.linearRampToValueAtTime(0, start + dur);
-      o.connect(f); f.connect(g); g.connect(master);
-      o.start(start); o.stop(start + dur + 0.1);
-    }
-
-    function bass(freq, start, dur) {
-      var o = ctx.createOscillator();
-      var g = ctx.createGain();
-      o.type = 'sine'; o.frequency.value = freq / 2;
-      g.gain.setValueAtTime(0.08, start);
-      g.gain.setValueAtTime(0.08, start + dur - 0.3);
-      g.gain.linearRampToValueAtTime(0, start + dur);
-      o.connect(g); g.connect(master);
-      o.start(start); o.stop(start + dur + 0.1);
-    }
-
-    function hat(start) {
-      var len = 0.04;
-      var buf = ctx.createBuffer(1, ctx.sampleRate * len, ctx.sampleRate);
-      var data = buf.getChannelData(0);
-      for (var i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-      var src = ctx.createBufferSource();
-      var g = ctx.createGain();
-      var f = ctx.createBiquadFilter();
-      src.buffer = buf;
-      f.type = 'highpass'; f.frequency.value = 9000;
-      g.gain.setValueAtTime(0.03, start);
-      g.gain.exponentialRampToValueAtTime(0.001, start + len);
-      src.connect(f); f.connect(g); g.connect(master);
-      src.start(start);
-    }
-
-    function kick(start) {
-      var o = ctx.createOscillator();
-      var g = ctx.createGain();
-      o.type = 'sine';
-      o.frequency.setValueAtTime(100, start);
-      o.frequency.exponentialRampToValueAtTime(30, start + 0.15);
-      g.gain.setValueAtTime(0.12, start);
-      g.gain.exponentialRampToValueAtTime(0.001, start + 0.25);
-      o.connect(g); g.connect(master);
-      o.start(start); o.stop(start + 0.3);
-    }
-
-    function melody(freq, start) {
-      var o = ctx.createOscillator();
-      var g = ctx.createGain();
-      var f = ctx.createBiquadFilter();
-      o.type = 'triangle'; o.frequency.value = freq;
-      f.type = 'lowpass'; f.frequency.value = 1500;
-      g.gain.setValueAtTime(0, start);
-      g.gain.linearRampToValueAtTime(0.04, start + 0.03);
-      g.gain.exponentialRampToValueAtTime(0.001, start + beat * 1.5);
-      o.connect(f); f.connect(g); g.connect(master);
-      o.start(start); o.stop(start + beat * 2);
-    }
-
-    // 旋律音符
-    var melodyNotes = [
-      523.25, 587.33, 659.25, 587.33,
-      523.25, 493.88, 440.00, 493.88,
-      523.25, 659.25, 783.99, 659.25,
-      587.33, 523.25, 493.88, 440.00
-    ];
-
-    // 安排4个小节
-    for (var bar = 0; bar < 4; bar++) {
-      var chord = chords[bar];
-      var barStart = t + bar * barLen;
+    function playBar(bt,ci){
+      var ch=chords[ci%4];
 
       // Pad 和弦
-      chord.forEach(function(f) { pad(f, barStart, barLen); });
+      ch.forEach(function(f){
+        var o=ctx.createOscillator(),g=ctx.createGain(),fl=ctx.createBiquadFilter();
+        o.type='sine';o.frequency.value=f;
+        fl.type='lowpass';fl.frequency.value=500;
+        g.gain.setValueAtTime(0,bt);g.gain.linearRampToValueAtTime(0.05,bt+1);
+        g.gain.setValueAtTime(0.05,bt+bar-2);g.gain.linearRampToValueAtTime(0,bt+bar);
+        o.connect(fl);fl.connect(g);g.connect(master);
+        o.start(bt);o.stop(bt+bar+0.5);
+      });
 
       // 贝斯
-      bass(chord[0], barStart, barLen);
+      var bo=ctx.createOscillator(),bg=ctx.createGain();
+      bo.type='sine';bo.frequency.value=ch[0]/4;
+      bg.gain.setValueAtTime(0.1,bt);bg.gain.setValueAtTime(0.1,bt+bar-0.5);bg.gain.linearRampToValueAtTime(0,bt+bar);
+      bo.connect(bg);bg.connect(master);bo.start(bt);bo.stop(bt+bar+0.5);
 
       // 鼓
-      for (var b = 0; b < 4; b++) {
-        var bt = barStart + b * beat;
-        if (b === 0 || b === 2) kick(bt);
-        hat(bt);
-        hat(bt + beat * 0.5);
+      for(var i=0;i<16;i++){
+        var st=bt+i*beat;
+        if(i%4===0){// kick
+          var ko=ctx.createOscillator(),kg=ctx.createGain();
+          ko.type='sine';ko.frequency.setValueAtTime(120,st);ko.frequency.exponentialRampToValueAtTime(30,st+0.12);
+          kg.gain.setValueAtTime(0.15,st);kg.gain.exponentialRampToValueAtTime(0.001,st+0.2);
+          ko.connect(kg);kg.connect(master);ko.start(st);ko.stop(st+0.25);
+        }
+        if(i===4||i===12){// snare
+          var nb=ctx.createBuffer(1,ctx.sampleRate*0.08,ctx.sampleRate),nd=nb.getChannelData(0);
+          for(var j=0;j<nd.length;j++)nd[j]=(Math.random()*2-1);
+          var ns=ctx.createBufferSource(),ng=ctx.createGain(),nf=ctx.createBiquadFilter();
+          ns.buffer=nb;nf.type='bandpass';nf.frequency.value=3000;
+          ng.gain.setValueAtTime(0.08,st);ng.gain.exponentialRampToValueAtTime(0.001,st+0.08);
+          ns.connect(nf);nf.connect(ng);ng.connect(master);ns.start(st);
+        }
+        // hihat
+        var hb=ctx.createBuffer(1,ctx.sampleRate*0.03,ctx.sampleRate),hd=hb.getChannelData(0);
+        for(var j=0;j<hd.length;j++)hd[j]=(Math.random()*2-1);
+        var hs=ctx.createBufferSource(),hg=ctx.createGain(),hf=ctx.createBiquadFilter();
+        hs.buffer=hb;hf.type='highpass';hf.frequency.value=8000;
+        hg.gain.setValueAtTime(0.025,st);hg.gain.exponentialRampToValueAtTime(0.001,st+0.03);
+        hs.connect(hf);hf.connect(hg);hg.connect(master);hs.start(st);
       }
 
       // 旋律
-      for (var n = 0; n < 4; n++) {
-        melody(melodyNotes[(bar * 4 + n) % melodyNotes.length], barStart + n * beat);
-      }
+      melody.forEach(function(n){
+        var mo=ctx.createOscillator(),mg=ctx.createGain(),mf=ctx.createBiquadFilter();
+        mo.type='triangle';mo.frequency.value=n[0];
+        mf.type='lowpass';mf.frequency.value=2000;
+        var mt=bt+n[1]*beat;
+        mg.gain.setValueAtTime(0,mt);mg.gain.linearRampToValueAtTime(0.06,mt+0.02);
+        mg.gain.exponentialRampToValueAtTime(0.001,mt+beat*1.5);
+        mo.connect(mf);mf.connect(mg);mg.connect(master);
+        mo.start(mt);mo.stop(mt+beat*2);
+      });
     }
 
-    // 循环
-    var totalDur = 4 * barLen;
-    setTimeout(function() {
-      if (playing) initMusic();
-    }, (totalDur - 1) * 1000);
+    // 安排8个小节并循环
+    for(var b=0;b<8;b++)playBar(t+b*bar,b);
 
-    playing = true;
+    var total=8*bar;
+    setTimeout(function(){if(playing)startLoop();},(total-2)*1000);
+
+    function startLoop(){
+      if(!playing)return;
+      var t2=ctx.currentTime+0.1;
+      for(var b=0;b<8;b++)playBar(t2+b*bar,b);
+      setTimeout(function(){if(playing)startLoop();},(total-2)*1000);
+    }
   }
 
-  // 点击页面后播放
-  document.addEventListener('click', function() {
-    if (!playing) initMusic();
-  }, { once: true });
+  document.addEventListener('click',function(){startMusic();},{once:true});
 })();
 </script>
 </body>
