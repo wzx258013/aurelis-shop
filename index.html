@@ -395,12 +395,10 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
   <p class="section-tag reveal">Follow Us</p>
   <h2 class="section-title reveal reveal-d1">Join the World of Ciel</h2>
   <p class="section-desc reveal reveal-d2" style="margin:0 auto 40px;text-align:center">Follow us on social media for behind-the-scenes content, styling inspiration, and exclusive previews.</p>
-  <div class="social-links reveal reveal-d3">
-    <a href="https://instagram.com" target="_blank" class="social-link"><span class="s-icon">◎</span>Instagram</a>
-    <a href="https://weibo.com" target="_blank" class="social-link"><span class="s-icon">◎</span>Weibo</a>
-    <a href="https://www.xiaohongshu.com" target="_blank" class="social-link"><span class="s-icon">◎</span>Xiaohongshu</a>
-    <a href="https://www.douyin.com" target="_blank" class="social-link"><span class="s-icon">◎</span>Douyin</a>
-    <a href="https://www.pinterest.com" target="_blank" class="social-link"><span class="s-icon">◎</span>Pinterest</a>
+  <div class="social-links reveal reveal-d3" id="socialLinks">
+    <a href="#" target="_blank" class="social-link"><span class="s-icon">f</span>Facebook</a>
+    <a href="#" target="_blank" class="social-link"><span class="s-icon">◎</span>Instagram</a>
+    <a href="#" target="_blank" class="social-link"><span class="s-icon">✆</span>WhatsApp</a>
   </div>
 </section>
 
@@ -438,9 +436,9 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
   <div class="footer-bottom">
     <span>&copy; 2025 Ciel Luxury Footwear -U1 Studio. All rights reserved.</span>
     <div class="footer-socials">
-      <a href="https://instagram.com" target="_blank">Instagram</a>
-      <a href="https://www.xiaohongshu.com" target="_blank">Xiaohongshu</a>
-      <a href="https://weibo.com" target="_blank">Weibo</a>
+      <a href="#" target="_blank" class="footer-social" data-social="facebook">Facebook</a>
+      <a href="#" target="_blank" class="footer-social" data-social="instagram">Instagram</a>
+      <a href="#" target="_blank" class="footer-social" data-social="whatsapp">WhatsApp</a>
     </div>
   </div>
 </footer>
@@ -491,6 +489,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
     <h2>◆ Vérité Studio | The Art of Precision</h2>
     <div class="admin-top-actions">
       <button class="admin-btn primary" onclick="openProductForm()">+ Add Product</button>
+      <button class="admin-btn" onclick="openContactForm()">✆ Contact Settings</button>
       <button class="admin-btn" onclick="closeAdmin()">Back to Site</button>
       <button class="admin-btn danger" onclick="logoutAdmin()">Logout</button>
     </div>
@@ -539,6 +538,21 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
   </div>
 </div>
 
+<!-- ═══════ ADMIN CONTACT SETTINGS MODAL ═══════ -->
+<div class="admin-modal" id="contactFormModal">
+  <div class="admin-form">
+    <h3>✆ Contact Settings</h3>
+    <p style="font-size:.68rem;color:var(--text-muted);margin-bottom:20px">客户点击前台 Facebook / Instagram / WhatsApp 按钮时跳转的链接</p>
+    <div class="form-group"><label>Facebook 链接</label><input id="cFacebook" placeholder="https://www.facebook.com/yourpage"></div>
+    <div class="form-group"><label>Instagram 链接</label><input id="cInstagram" placeholder="https://www.instagram.com/yourname"></div>
+    <div class="form-group"><label>WhatsApp 号码</label><input id="cWhatsapp" placeholder="8613800138000（含国家码，不含+号）"></div>
+    <div class="form-actions">
+      <button class="admin-btn" onclick="closeContactForm()">Cancel</button>
+      <button class="admin-btn primary" onclick="saveContact()">Save Settings</button>
+    </div>
+  </div>
+</div>
+
 <div class="msg-toast" id="toast"></div>
 
 <script>
@@ -554,10 +568,42 @@ const DEFAULT_PRODUCTS = [
 let products = JSON.parse(localStorage.getItem('aurelis_products'));
 if (!products || !products.length) { products = DEFAULT_PRODUCTS; save(); }
 let cart = JSON.parse(localStorage.getItem('aurelis_cart')) || [];
+
+// 联系方式配置（后台可修改）
+const DEFAULT_CONTACT = { facebook: 'https://www.facebook.com/yourpage', instagram: 'https://www.instagram.com/yourname', whatsapp: '8613800138000' };
+let contact = JSON.parse(localStorage.getItem('aurelis_contact'));
+if (!contact || typeof contact !== 'object') { contact = { ...DEFAULT_CONTACT }; saveContact(); }
+
 const ADMIN_PWD = 'admin123';
 
 function save() { localStorage.setItem('aurelis_products', JSON.stringify(products)); }
 function saveCart() { localStorage.setItem('aurelis_cart', JSON.stringify(cart)); }
+function saveContact() { localStorage.setItem('aurelis_contact', JSON.stringify(contact)); }
+
+// 生成 WhatsApp 链接
+function getWhatsAppUrl(number) {
+  const clean = (number || '').replace(/[^\d]/g, '');
+  return clean ? `https://wa.me/${clean}` : '#';
+}
+
+// 渲染社交链接（前台 + 页脚）
+function renderSocialLinks() {
+  // 前台社交区
+  const socialLinks = document.getElementById('socialLinks');
+  if (socialLinks) {
+    socialLinks.innerHTML = `
+      <a href="${contact.facebook || '#'}" target="_blank" class="social-link"><span class="s-icon">f</span>Facebook</a>
+      <a href="${contact.instagram || '#'}" target="_blank" class="social-link"><span class="s-icon">◎</span>Instagram</a>
+      <a href="${getWhatsAppUrl(contact.whatsapp)}" target="_blank" class="social-link"><span class="s-icon">✆</span>WhatsApp</a>
+    `;
+  }
+  // 页脚社交
+  document.querySelectorAll('.footer-social').forEach(a => {
+    const key = a.getAttribute('data-social');
+    if (key === 'whatsapp') a.href = getWhatsAppUrl(contact.whatsapp);
+    else a.href = contact[key] || '#';
+  });
+}
 
 function getCategories() {
   const cats = new Set(products.filter(p => p.status === 'published').map(p => p.category));
@@ -762,6 +808,28 @@ function deleteProduct(id) {
   showToast(p.name + ' deleted');
 }
 
+/* ═══ CONTACT SETTINGS ═══ */
+function openContactForm() {
+  document.getElementById('cFacebook').value = contact.facebook || '';
+  document.getElementById('cInstagram').value = contact.instagram || '';
+  document.getElementById('cWhatsapp').value = (contact.whatsapp || '').replace(/[^\d]/g, '');
+  document.getElementById('contactFormModal').classList.add('show');
+}
+
+function closeContactForm() {
+  document.getElementById('contactFormModal').classList.remove('show');
+}
+
+function saveContact() {
+  contact.facebook = document.getElementById('cFacebook').value.trim();
+  contact.instagram = document.getElementById('cInstagram').value.trim();
+  contact.whatsapp = document.getElementById('cWhatsapp').value.trim();
+  saveContact();
+  closeContactForm();
+  renderSocialLinks();
+  showToast('Contact settings saved');
+}
+
 function showToast(msg, isError) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -787,6 +855,7 @@ checkRoute();
 renderFilters();
 renderProducts();
 renderCart();
+renderSocialLinks();
 </script>
 </body>
 </html>
