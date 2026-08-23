@@ -1164,162 +1164,261 @@ renderCart();
 renderSocialLinks();
 applyLang();
 
-/* ═══ MUSIC PLAYER - 贝多芬致爱丽丝 ═══ */
+/* ═══ MUSIC PLAYER - Chill Pop Beat ═══ */
 const musicBtn = document.getElementById('musicBtn');
 const musicBars = document.getElementById('musicBars');
 const musicIcon = document.getElementById('musicIcon');
 const musicHint = document.getElementById('musicHint');
 let musicPlaying = false;
 let musicCtx = null;
-let musicTimeout = null;
+let musicScheduler = null;
+let musicStartTime = 0;
+let musicBeat = 0;
 
-// 贝多芬《致爱丽丝》简化旋律（频率 Hz）
-const FUR_ELISE = [
-  // 第一段主题
-  [659.25,0.3],[622.25,0.3],[659.25,0.3],[622.25,0.3],[659.25,0.3],
-  [493.88,0.3],[587.33,0.3],[523.25,0.3],[440.00,0.6],
-  [261.63,0.3],[329.63,0.3],[440.00,0.3],[493.88,0.6],
-  [329.63,0.3],[415.30,0.3],[493.88,0.3],[523.25,0.6],
-  [329.63,0.3],[659.25,0.3],[622.25,0.3],[659.25,0.3],[622.25,0.3],[659.25,0.3],
-  [493.88,0.3],[587.33,0.3],[523.25,0.3],[440.00,0.6],
-  [261.63,0.3],[329.63,0.3],[440.00,0.3],[493.88,0.6],
-  [329.63,0.3],[523.25,0.3],[493.88,0.3],[440.00,0.6],
-  // 重复主题
-  [659.25,0.3],[622.25,0.3],[659.25,0.3],[622.25,0.3],[659.25,0.3],
-  [493.88,0.3],[587.33,0.3],[523.25,0.3],[440.00,0.6],
-  [261.63,0.3],[329.63,0.3],[440.00,0.3],[493.88,0.6],
-  [329.63,0.3],[415.30,0.3],[493.88,0.3],[523.25,0.6],
-  [329.63,0.3],[659.25,0.3],[622.25,0.3],[659.25,0.3],[622.25,0.3],[659.25,0.3],
-  [493.88,0.3],[587.33,0.3],[523.25,0.3],[440.00,0.6],
-  [261.63,0.3],[329.63,0.3],[440.00,0.3],[493.88,0.6],
-  [329.63,0.3],[523.25,0.3],[493.88,0.3],[440.00,0.6],
-  // 间奏
-  [0,0.8],
+const BPM = 95;
+const BEAT = 60 / BPM;
+
+// Chill Pop 和弦进行 (Cmaj7 → Am7 → Fmaj7 → G7)
+const CHORDS = [
+  [261.63, 329.63, 392.00, 493.88], // Cmaj7
+  [220.00, 261.63, 329.63, 392.00], // Am7
+  [174.61, 220.00, 261.63, 329.63], // Fmaj7
+  [196.00, 246.94, 293.66, 349.23], // G7
 ];
 
-function playPianoNote(ctx, freq, duration, startTime, masterGain) {
-  if (freq === 0) return; // 休止符
-  
-  const osc = ctx.createOscillator();
-  const osc2 = ctx.createOscillator();
-  const osc3 = ctx.createOscillator();
-  const gain = ctx.createGain();
-  const filter = ctx.createBiquadFilter();
+// 旋律音符 (频率, 节拍位置)
+const MELODY = [
+  [523.25,0],[587.33,1],[659.25,2],[587.33,3],
+  [523.25,4],[493.88,5],[440.00,6],[493.88,7],
+  [523.25,8],[587.33,9],[659.25,10],[783.99,11],
+  [659.25,12],[587.33,13],[523.25,14],[493.88,15],
+];
 
-  // 基频 + 泛音模拟钢琴音色
-  osc.type = 'sine';
-  osc.frequency.value = freq;
-  osc2.type = 'sine';
-  osc2.frequency.value = freq * 2; // 二次泛音
-  osc3.type = 'sine';
-  osc3.frequency.value = freq * 3; // 三次泛音
-
-  const g2 = ctx.createGain();
-  const g3 = ctx.createGain();
-  g2.gain.value = 0.15;
-  g3.gain.value = 0.05;
-
-  filter.type = 'lowpass';
-  filter.frequency.value = 3000;
-  filter.Q.value = 1;
-
-  // 钢琴 ADSR 包络
-  const attack = 0.02;
-  const decay = 0.1;
-  const sustain = 0.3;
-  const release = duration * 0.4;
-
-  gain.gain.setValueAtTime(0, startTime);
-  gain.gain.linearRampToValueAtTime(0.18, startTime + attack);
-  gain.gain.exponentialRampToValueAtTime(0.18 * sustain, startTime + attack + decay);
-  gain.gain.setValueAtTime(0.18 * sustain, startTime + duration - release);
-  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
-  osc.connect(filter);
-  osc2.connect(g2);
-  osc3.connect(g3);
-  g2.connect(filter);
-  g3.connect(filter);
-  filter.connect(gain);
-  gain.connect(masterGain);
-
-  osc.start(startTime);
-  osc.stop(startTime + duration + 0.1);
-  osc2.start(startTime);
-  osc2.stop(startTime + duration + 0.1);
-  osc3.start(startTime);
-  osc3.stop(startTime + duration + 0.1);
+function createNoise(ctx, duration) {
+  const bufferSize = ctx.sampleRate * duration;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+  return buffer;
 }
 
-function startFurElise() {
+function playPad(ctx, freqs, time, duration, master) {
+  freqs.forEach(freq => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    filter.type = 'lowpass';
+    filter.frequency.value = 800;
+    gain.gain.setValueAtTime(0, time);
+    gain.gain.linearRampToValueAtTime(0.04, time + 0.3);
+    gain.gain.setValueAtTime(0.04, time + duration - 0.5);
+    gain.gain.linearRampToValueAtTime(0, time + duration);
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(master);
+    osc.start(time);
+    osc.stop(time + duration + 0.1);
+  });
+}
+
+function playKick(ctx, time, master) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(150, time);
+  osc.frequency.exponentialRampToValueAtTime(30, time + 0.15);
+  gain.gain.setValueAtTime(0.3, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
+  osc.connect(gain);
+  gain.connect(master);
+  osc.start(time);
+  osc.stop(time + 0.35);
+}
+
+function playHiHat(ctx, time, master) {
+  const buf = createNoise(ctx, 0.05);
+  const src = ctx.createBufferSource();
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  src.buffer = buf;
+  filter.type = 'highpass';
+  filter.frequency.value = 8000;
+  gain.gain.setValueAtTime(0.08, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+  src.connect(filter);
+  filter.connect(gain);
+  gain.connect(master);
+  src.start(time);
+}
+
+function playSnare(ctx, time, master) {
+  const buf = createNoise(ctx, 0.1);
+  const src = ctx.createBufferSource();
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  src.buffer = buf;
+  filter.type = 'bandpass';
+  filter.frequency.value = 3000;
+  gain.gain.setValueAtTime(0.15, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+  src.connect(filter);
+  filter.connect(gain);
+  gain.connect(master);
+  src.start(time);
+
+  // snare tone
+  const osc = ctx.createOscillator();
+  const g2 = ctx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.value = 200;
+  g2.gain.setValueAtTime(0.1, time);
+  g2.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+  osc.connect(g2);
+  g2.connect(master);
+  osc.start(time);
+  osc.stop(time + 0.1);
+}
+
+function playMelodyNote(ctx, freq, time, master) {
+  const osc = ctx.createOscillator();
+  const osc2 = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+  osc2.type = 'triangle';
+  osc2.frequency.value = freq * 2;
+  
+  const g2 = ctx.createGain();
+  g2.gain.value = 0.15;
+  
+  filter.type = 'lowpass';
+  filter.frequency.value = 2000;
+  
+  gain.gain.setValueAtTime(0, time);
+  gain.gain.linearRampToValueAtTime(0.1, time + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.05, time + 0.15);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + BEAT * 0.9);
+  
+  osc.connect(filter);
+  osc2.connect(g2);
+  g2.connect(filter);
+  filter.connect(gain);
+  gain.connect(master);
+  
+  osc.start(time);
+  osc.stop(time + BEAT);
+  osc2.start(time);
+  osc2.stop(time + BEAT);
+}
+
+function playBass(ctx, freq, time, duration, master) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = freq / 2;
+  gain.gain.setValueAtTime(0.12, time);
+  gain.gain.setValueAtTime(0.12, time + duration - 0.1);
+  gain.gain.linearRampToValueAtTime(0, time + duration);
+  osc.connect(gain);
+  gain.connect(master);
+  osc.start(time);
+  osc.stop(time + duration + 0.1);
+}
+
+function scheduleBar(ctx, barStart, barIndex, master) {
+  const chord = CHORDS[barIndex % CHORDS.length];
+  const barLen = BEAT * 16;
+
+  // 和弦 pad
+  playPad(ctx, chord, barStart, barLen, master);
+
+  // 贝斯
+  playBass(ctx, chord[0], barStart, barLen, master);
+
+  // 鼓组 - 每16拍一个bar
+  for (let i = 0; i < 16; i++) {
+    const t = barStart + i * BEAT;
+    // kick: 1, 5, 9, 13
+    if (i % 4 === 0) playKick(ctx, t, master);
+    // snare: 5, 13
+    if (i === 4 || i === 12) playSnare(ctx, t, master);
+    // hihat: 每拍
+    playHiHat(ctx, t, master);
+    // offbeat hihat
+    if (i % 2 === 1) playHiHat(ctx, t + BEAT * 0.5, master);
+  }
+
+  // 旋律
+  MELODY.forEach(([freq, pos]) => {
+    playMelodyNote(ctx, freq, barStart + pos * BEAT, master);
+  });
+}
+
+function startMusic() {
   if (!musicCtx) {
     musicCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
   if (musicCtx.state === 'suspended') musicCtx.resume();
 
-  const masterGain = musicCtx.createGain();
-  masterGain.gain.value = 0.25;
-  masterGain.connect(musicCtx.destination);
+  const master = musicCtx.createGain();
+  master.gain.value = 0.5;
+  master.connect(musicCtx.destination);
 
-  // 添加混响效果
+  // 简单混响
   const convolver = musicCtx.createConvolver();
   const reverbGain = musicCtx.createGain();
-  reverbGain.gain.value = 0.3;
-  
-  // 创建简单的混响
-  const sampleRate = musicCtx.sampleRate;
-  const length = sampleRate * 2;
-  const impulse = musicCtx.createBuffer(2, length, sampleRate);
+  reverbGain.gain.value = 0.2;
+  const sr = musicCtx.sampleRate;
+  const impulse = musicCtx.createBuffer(2, sr * 1.5, sr);
   for (let ch = 0; ch < 2; ch++) {
-    const data = impulse.getChannelData(ch);
-    for (let i = 0; i < length; i++) {
-      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2);
-    }
+    const d = impulse.getChannelData(ch);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 1.5);
   }
   convolver.buffer = impulse;
-  
-  masterGain.connect(convolver);
+  master.connect(convolver);
   convolver.connect(reverbGain);
   reverbGain.connect(musicCtx.destination);
 
-  let time = musicCtx.currentTime + 0.1;
+  musicStartTime = musicCtx.currentTime;
+  musicBeat = 0;
+  const barLen = BEAT * 16;
 
-  function playSequence() {
+  function schedule() {
     if (!musicPlaying) return;
-    
-    FUR_ELISE.forEach(([freq, dur]) => {
-      playPianoNote(musicCtx, freq, dur, time, masterGain);
-      time += dur;
-    });
-
-    // 循环播放
-    const totalTime = FUR_ELISE.reduce((s, [, d]) => s + d, 0);
-    musicTimeout = setTimeout(playSequence, totalTime * 1000 - 500);
+    const now = musicCtx.currentTime;
+    while (musicStartTime + musicBeat * barLen < now + 2) {
+      scheduleBar(musicCtx, musicStartTime + musicBeat * barLen, musicBeat, master);
+      musicBeat++;
+    }
+    musicScheduler = setTimeout(schedule, 500);
   }
 
-  playSequence();
+  schedule();
 }
 
 function toggleMusic() {
   if (musicPlaying) {
     musicPlaying = false;
-    if (musicTimeout) clearTimeout(musicTimeout);
+    if (musicScheduler) clearTimeout(musicScheduler);
     if (musicCtx) musicCtx.suspend();
     musicBtn.classList.remove('playing');
     musicBars.style.display = 'none';
     musicIcon.style.display = 'inline';
-    musicHint.textContent = 'Play Für Elise';
+    musicHint.textContent = 'Play Music';
   } else {
     musicPlaying = true;
-    startFurElise();
+    startMusic();
     musicBtn.classList.add('playing');
     musicBars.style.display = 'flex';
     musicIcon.style.display = 'none';
-    musicHint.textContent = 'Pause music';
+    musicHint.textContent = 'Pause Music';
   }
 }
 
-// 用户首次点击后自动播放
 document.addEventListener('click', function autoPlay() {
   if (!musicPlaying) toggleMusic();
 }, { once: true });
