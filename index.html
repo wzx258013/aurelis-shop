@@ -237,7 +237,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 @keyframes musicPulse{0%,100%{box-shadow:0 0 0 0 rgba(201,169,110,.3)}50%{box-shadow:0 0 0 8px rgba(201,169,110,0)}}
 .music-hint{font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);background:rgba(19,19,13,.85);padding:8px 14px;border-radius:20px;border:1px solid var(--border);backdrop-filter:blur(10px);white-space:nowrap;opacity:0;transform:translateX(10px);transition:all .4s var(--ease);pointer-events:none}
 .music-control:hover .music-hint{opacity:1;transform:translateX(0)}
-#ytPlayer{position:fixed;bottom:-200px;right:-200px;width:1px;height:1px;opacity:0;pointer-events:none}
+#musicFrame{position:fixed;bottom:80px;right:32px;z-index:998;width:330px;height:66px;border:none;border-radius:8px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.5)}
 
 /* ADMIN */
 .admin-login{position:fixed;inset:0;background:var(--bg);z-index:500;display:none;align-items:center;justify-content:center}
@@ -599,11 +599,10 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 
 <!-- ═══════ BACKGROUND MUSIC ═══════ -->
 <!-- ═══════ BACKGROUND MUSIC ═══════ -->
+<iframe id="musicFrame" src="https://music.163.com/outchain/player?type=2&id=1421443440&auto=1&height=66" allow="autoplay" style="position:fixed;bottom:80px;right:32px;z-index:998;width:330px;height:66px;border:none;border-radius:8px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.5)"></iframe>
 <div class="music-control">
-  <div class="music-hint" id="musicHint">Play Music</div>
-  <button class="music-btn" id="musicBtn" onclick="toggleMusic()">
-    <div class="music-bars" id="musicBars" style="display:none"><span></span><span></span><span></span><span></span><span></span></div>
-    <span id="musicIcon">♪</span>
+  <button class="music-btn" id="musicBtn" onclick="document.getElementById('musicFrame').style.display=document.getElementById('musicFrame').style.display==='none'?'block':'none'">
+    <div class="music-bars"><span></span><span></span><span></span><span></span><span></span></div>
   </button>
 </div>
 
@@ -1165,48 +1164,6 @@ renderProducts();
 renderCart();
 renderSocialLinks();
 applyLang();
-
-/* ═══ MUSIC PLAYER - 网易云音乐 ═══ */
-const musicBtn = document.getElementById('musicBtn');
-const musicBars = document.getElementById('musicBars');
-const musicIcon = document.getElementById('musicIcon');
-const musicHint = document.getElementById('musicHint');
-let musicPlaying = false;
-let musicIframe = null;
-
-// 创建隐藏的网易云音乐播放器
-function createMusicPlayer() {
-  musicIframe = document.createElement('iframe');
-  musicIframe.style.cssText = 'position:fixed;bottom:0;right:0;width:0;height:0;border:none;opacity:0;pointer-events:none;';
-  musicIframe.src = 'https://music.163.com/outchain/player?type=2&id=1421443440&auto=0&height=0';
-  musicIframe.allow = 'autoplay';
-  document.body.appendChild(musicIframe);
-}
-
-function toggleMusic() {
-  if (!musicIframe) createMusicPlayer();
-  
-  if (musicPlaying) {
-    musicIframe.src = '';
-    musicPlaying = false;
-    musicBtn.classList.remove('playing');
-    musicBars.style.display = 'none';
-    musicIcon.style.display = 'inline';
-    musicHint.textContent = 'Play Music';
-  } else {
-    musicIframe.src = 'https://music.163.com/outchain/player?type=2&id=1421443440&auto=1&height=0';
-    musicPlaying = true;
-    musicBtn.classList.add('playing');
-    musicBars.style.display = 'flex';
-    musicIcon.style.display = 'none';
-    musicHint.textContent = 'Pause Music';
-  }
-}
-
-// 用户首次点击后自动播放
-document.addEventListener('click', function autoPlay() {
-  if (!musicPlaying) toggleMusic();
-}, { once: true });
 </script>
 </body>
 </html>
