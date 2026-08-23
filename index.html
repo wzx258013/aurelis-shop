@@ -222,22 +222,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .lang-option.active{color:var(--accent);background:var(--accent-dim)}
 
 /* MUSIC PLAYER */
-.music-control{position:fixed;bottom:32px;right:32px;z-index:999;display:flex;align-items:center;gap:12px}
-.music-btn{width:48px;height:48px;border-radius:50%;background:rgba(19,19,13,.85);border:1px solid var(--border);color:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .4s var(--ease);backdrop-filter:blur(10px);font-size:1.1rem}
-.music-btn:hover{background:var(--accent-dim);border-color:var(--accent);transform:scale(1.08)}
-.music-btn.playing{animation:musicPulse 2s ease-in-out infinite}
-.music-bars{display:flex;align-items:flex-end;gap:2px;height:14px}
-.music-bars span{display:block;width:2px;background:var(--accent);border-radius:1px;animation:musicBar 1.2s ease-in-out infinite}
-.music-bars span:nth-child(1){height:6px;animation-delay:0s}
-.music-bars span:nth-child(2){height:10px;animation-delay:.2s}
-.music-bars span:nth-child(3){height:8px;animation-delay:.4s}
-.music-bars span:nth-child(4){height:12px;animation-delay:.1s}
-.music-bars span:nth-child(5){height:5px;animation-delay:.3s}
-@keyframes musicBar{0%,100%{height:4px}50%{height:14px}}
-@keyframes musicPulse{0%,100%{box-shadow:0 0 0 0 rgba(201,169,110,.3)}50%{box-shadow:0 0 0 8px rgba(201,169,110,0)}}
-.music-hint{font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);background:rgba(19,19,13,.85);padding:8px 14px;border-radius:20px;border:1px solid var(--border);backdrop-filter:blur(10px);white-space:nowrap;opacity:0;transform:translateX(10px);transition:all .4s var(--ease);pointer-events:none}
-.music-control:hover .music-hint{opacity:1;transform:translateX(0)}
-#musicFrame{position:fixed;bottom:24px;right:24px;z-index:998;width:330px;height:66px;border:none;border-radius:8px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.6)}
+#musicFrame{position:fixed;bottom:0;right:0;z-index:-1;width:1px;height:1px;border:none;opacity:0.01}
 
 /* ADMIN */
 .admin-login{position:fixed;inset:0;background:var(--bg);z-index:500;display:none;align-items:center;justify-content:center}
@@ -600,12 +585,6 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 <!-- ═══════ BACKGROUND MUSIC ═══════ -->
 <!-- ═══════ BACKGROUND MUSIC ═══════ -->
 <iframe id="musicFrame" src="https://music.163.com/outchain/player?type=2&id=1421443440&auto=1&height=66" allow="autoplay"></iframe>
-<div class="music-control" style="display:none">
-  <button class="music-btn" id="musicBtn" onclick="var f=document.getElementById('musicFrame');if(f.src){f.dataset.src=f.src;f.src='';this.classList.remove('playing')}else{f.src=f.dataset.src||'https://music.163.com/outchain/player?type=2&id=1421443440&auto=1&height=66';this.classList.add('playing')}">
-    <div class="music-bars" id="musicBars"><span></span><span></span><span></span><span></span><span></span></div>
-    <span id="musicIcon" style="display:none">♪</span>
-  </button>
-</div>
 
 <script>
 const DEFAULT_PRODUCTS = [
