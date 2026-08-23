@@ -597,9 +597,8 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 <div class="msg-toast" id="toast"></div>
 
 <!-- ═══════ BACKGROUND MUSIC ═══════ -->
-<audio id="bgMusic" loop preload="auto" style="display:none"></audio>
 <div class="music-control">
-  <div class="music-hint" id="musicHint">Click to play music</div>
+  <div class="music-hint" id="musicHint">Play Für Elise</div>
   <button class="music-btn" id="musicBtn" onclick="toggleMusic()">
     <div class="music-bars" id="musicBars" style="display:none"><span></span><span></span><span></span><span></span><span></span></div>
     <span id="musicIcon">♪</span>
@@ -1165,120 +1164,158 @@ renderCart();
 renderSocialLinks();
 applyLang();
 
-/* ═══ MUSIC PLAYER ═══ */
-const bgMusic = document.getElementById('bgMusic');
+/* ═══ MUSIC PLAYER - 贝多芬致爱丽丝 ═══ */
 const musicBtn = document.getElementById('musicBtn');
 const musicBars = document.getElementById('musicBars');
 const musicIcon = document.getElementById('musicIcon');
 const musicHint = document.getElementById('musicHint');
 let musicPlaying = false;
-let audioCtx = null;
-let pianoNodes = [];
+let musicCtx = null;
+let musicTimeout = null;
 
-// 古典钢琴音乐 URL（免费 CC0 授权）
-const MUSIC_URL = 'https://cdn.pixabay.com/audio/2022/02/22/audio_d1718ab41b.mp3';
-bgMusic.src = MUSIC_URL;
-bgMusic.volume = 0.25;
+// 贝多芬《致爱丽丝》简化旋律（频率 Hz）
+const FUR_ELISE = [
+  // 第一段主题
+  [659.25,0.3],[622.25,0.3],[659.25,0.3],[622.25,0.3],[659.25,0.3],
+  [493.88,0.3],[587.33,0.3],[523.25,0.3],[440.00,0.6],
+  [261.63,0.3],[329.63,0.3],[440.00,0.3],[493.88,0.6],
+  [329.63,0.3],[415.30,0.3],[493.88,0.3],[523.25,0.6],
+  [329.63,0.3],[659.25,0.3],[622.25,0.3],[659.25,0.3],[622.25,0.3],[659.25,0.3],
+  [493.88,0.3],[587.33,0.3],[523.25,0.3],[440.00,0.6],
+  [261.63,0.3],[329.63,0.3],[440.00,0.3],[493.88,0.6],
+  [329.63,0.3],[523.25,0.3],[493.88,0.3],[440.00,0.6],
+  // 重复主题
+  [659.25,0.3],[622.25,0.3],[659.25,0.3],[622.25,0.3],[659.25,0.3],
+  [493.88,0.3],[587.33,0.3],[523.25,0.3],[440.00,0.6],
+  [261.63,0.3],[329.63,0.3],[440.00,0.3],[493.88,0.6],
+  [329.63,0.3],[415.30,0.3],[493.88,0.3],[523.25,0.6],
+  [329.63,0.3],[659.25,0.3],[622.25,0.3],[659.25,0.3],[622.25,0.3],[659.25,0.3],
+  [493.88,0.3],[587.33,0.3],[523.25,0.3],[440.00,0.6],
+  [261.63,0.3],[329.63,0.3],[440.00,0.3],[493.88,0.6],
+  [329.63,0.3],[523.25,0.3],[493.88,0.3],[440.00,0.6],
+  // 间奏
+  [0,0.8],
+];
 
-// Web Audio API 生成优雅钢琴旋律（备用方案）
-function createPianoAmbient() {
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const masterGain = audioCtx.createGain();
-  masterGain.gain.value = 0.08;
-  masterGain.connect(audioCtx.destination);
+function playPianoNote(ctx, freq, duration, startTime, masterGain) {
+  if (freq === 0) return; // 休止符
+  
+  const osc = ctx.createOscillator();
+  const osc2 = ctx.createOscillator();
+  const osc3 = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
 
-  // 柔和钢琴和弦序列（C大调 → Am → F → G 循环）
-  const chords = [
-    [261.63, 329.63, 392.00],   // C major
-    [220.00, 261.63, 329.63],   // A minor
-    [174.61, 220.00, 261.63],   // F major
-    [196.00, 246.94, 293.66],   // G major
-    [261.63, 311.13, 392.00],   // C7
-    [220.00, 277.18, 329.63],   // A dim
-    [174.61, 220.00, 261.63],   // F major
-    [196.00, 246.94, 329.63],   // G sus4
-  ];
+  // 基频 + 泛音模拟钢琴音色
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+  osc2.type = 'sine';
+  osc2.frequency.value = freq * 2; // 二次泛音
+  osc3.type = 'sine';
+  osc3.frequency.value = freq * 3; // 三次泛音
 
-  let chordIndex = 0;
-  const chordDuration = 4; // 每个和弦 4 秒
+  const g2 = ctx.createGain();
+  const g3 = ctx.createGain();
+  g2.gain.value = 0.15;
+  g3.gain.value = 0.05;
 
-  function playChord() {
-    if (!musicPlaying || !audioCtx) return;
-    const chord = chords[chordIndex % chords.length];
-    const now = audioCtx.currentTime;
+  filter.type = 'lowpass';
+  filter.frequency.value = 3000;
+  filter.Q.value = 1;
 
-    chord.forEach((freq, i) => {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      const filter = audioCtx.createBiquadFilter();
+  // 钢琴 ADSR 包络
+  const attack = 0.02;
+  const decay = 0.1;
+  const sustain = 0.3;
+  const release = duration * 0.4;
 
-      osc.type = 'sine';
-      osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0, startTime);
+  gain.gain.linearRampToValueAtTime(0.18, startTime + attack);
+  gain.gain.exponentialRampToValueAtTime(0.18 * sustain, startTime + attack + decay);
+  gain.gain.setValueAtTime(0.18 * sustain, startTime + duration - release);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
-      // 添加微弱的泛音模拟钢琴
-      const osc2 = audioCtx.createOscillator();
-      const gain2 = audioCtx.createGain();
-      osc2.type = 'sine';
-      osc2.frequency.value = freq * 2;
-      gain2.gain.value = 0.03;
-      osc2.connect(gain2);
-      gain2.connect(filter);
-      osc2.start(now);
-      osc2.stop(now + chordDuration);
+  osc.connect(filter);
+  osc2.connect(g2);
+  osc3.connect(g3);
+  g2.connect(filter);
+  g3.connect(filter);
+  filter.connect(gain);
+  gain.connect(masterGain);
 
-      filter.type = 'lowpass';
-      filter.frequency.value = 2000;
-      filter.Q.value = 0.7;
+  osc.start(startTime);
+  osc.stop(startTime + duration + 0.1);
+  osc2.start(startTime);
+  osc2.stop(startTime + duration + 0.1);
+  osc3.start(startTime);
+  osc3.stop(startTime + duration + 0.1);
+}
 
-      // ADSR 包络
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(0.12, now + 0.1);
-      gain.gain.exponentialRampToValueAtTime(0.06, now + 0.8);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + chordDuration - 0.5);
-      gain.gain.linearRampToValueAtTime(0, now + chordDuration);
+function startFurElise() {
+  if (!musicCtx) {
+    musicCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (musicCtx.state === 'suspended') musicCtx.resume();
 
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(masterGain);
+  const masterGain = musicCtx.createGain();
+  masterGain.gain.value = 0.25;
+  masterGain.connect(musicCtx.destination);
 
-      osc.start(now + i * 0.05);
-      osc.stop(now + chordDuration);
-      pianoNodes.push(osc);
+  // 添加混响效果
+  const convolver = musicCtx.createConvolver();
+  const reverbGain = musicCtx.createGain();
+  reverbGain.gain.value = 0.3;
+  
+  // 创建简单的混响
+  const sampleRate = musicCtx.sampleRate;
+  const length = sampleRate * 2;
+  const impulse = musicCtx.createBuffer(2, length, sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const data = impulse.getChannelData(ch);
+    for (let i = 0; i < length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2);
+    }
+  }
+  convolver.buffer = impulse;
+  
+  masterGain.connect(convolver);
+  convolver.connect(reverbGain);
+  reverbGain.connect(musicCtx.destination);
+
+  let time = musicCtx.currentTime + 0.1;
+
+  function playSequence() {
+    if (!musicPlaying) return;
+    
+    FUR_ELISE.forEach(([freq, dur]) => {
+      playPianoNote(musicCtx, freq, dur, time, masterGain);
+      time += dur;
     });
 
-    chordIndex++;
-    setTimeout(playChord, chordDuration * 1000 - 200);
+    // 循环播放
+    const totalTime = FUR_ELISE.reduce((s, [, d]) => s + d, 0);
+    musicTimeout = setTimeout(playSequence, totalTime * 1000 - 500);
   }
 
-  playChord();
+  playSequence();
 }
 
 function toggleMusic() {
   if (musicPlaying) {
-    bgMusic.pause();
-    if (audioCtx) { audioCtx.suspend(); }
     musicPlaying = false;
+    if (musicTimeout) clearTimeout(musicTimeout);
+    if (musicCtx) musicCtx.suspend();
     musicBtn.classList.remove('playing');
     musicBars.style.display = 'none';
     musicIcon.style.display = 'inline';
-    musicHint.textContent = 'Play music';
+    musicHint.textContent = 'Play Für Elise';
   } else {
-    // 先尝试在线音乐
-    bgMusic.play().then(() => {
-      musicPlaying = true;
-      musicBtn.classList.add('playing');
-      musicBars.style.display = 'flex';
-      musicIcon.style.display = 'none';
-      musicHint.textContent = 'Pause music';
-    }).catch(() => {
-      // 在线音乐失败，用 Web Audio 生成钢琴
-      createPianoAmbient();
-      musicPlaying = true;
-      musicBtn.classList.add('playing');
-      musicBars.style.display = 'flex';
-      musicIcon.style.display = 'none';
-      musicHint.textContent = 'Pause music';
-    });
+    musicPlaying = true;
+    startFurElise();
+    musicBtn.classList.add('playing');
+    musicBars.style.display = 'flex';
+    musicIcon.style.display = 'none';
+    musicHint.textContent = 'Pause music';
   }
 }
 
