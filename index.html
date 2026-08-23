@@ -237,6 +237,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 @keyframes musicPulse{0%,100%{box-shadow:0 0 0 0 rgba(201,169,110,.3)}50%{box-shadow:0 0 0 8px rgba(201,169,110,0)}}
 .music-hint{font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);background:rgba(19,19,13,.85);padding:8px 14px;border-radius:20px;border:1px solid var(--border);backdrop-filter:blur(10px);white-space:nowrap;opacity:0;transform:translateX(10px);transition:all .4s var(--ease);pointer-events:none}
 .music-control:hover .music-hint{opacity:1;transform:translateX(0)}
+#ytPlayer{position:fixed;bottom:-200px;right:-200px;width:1px;height:1px;opacity:0;pointer-events:none}
 
 /* ADMIN */
 .admin-login{position:fixed;inset:0;background:var(--bg);z-index:500;display:none;align-items:center;justify-content:center}
@@ -597,13 +598,16 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 <div class="msg-toast" id="toast"></div>
 
 <!-- ═══════ BACKGROUND MUSIC ═══════ -->
+<div id="ytPlayer"></div>
 <div class="music-control">
-  <div class="music-hint" id="musicHint">Play Für Elise</div>
+  <div class="music-hint" id="musicHint">Play Music</div>
   <button class="music-btn" id="musicBtn" onclick="toggleMusic()">
     <div class="music-bars" id="musicBars" style="display:none"><span></span><span></span><span></span><span></span><span></span></div>
     <span id="musicIcon">♪</span>
   </button>
 </div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
 const DEFAULT_PRODUCTS = [
@@ -1164,254 +1168,58 @@ renderCart();
 renderSocialLinks();
 applyLang();
 
-/* ═══ MUSIC PLAYER - Chill Pop Beat ═══ */
+/* ═══ YOUTUBE MUSIC PLAYER ═══ */
+let ytPlayer = null;
+let musicPlaying = false;
+
+function onYouTubeIframeAPIReady() {
+  ytPlayer = new YT.Player('ytPlayer', {
+    height: '1',
+    width: '1',
+    playerVars: {
+      listType: 'playlist',
+      list: 'PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf', // 欧美 Chill Pop 热门播放列表
+      autoplay: 0,
+      loop: 1,
+      shuffle: 1,
+      controls: 0,
+      modestbranding: 1,
+      rel: 0,
+    },
+    events: {
+      onReady: function() {
+        ytPlayer.setVolume(40);
+      },
+      onStateChange: function(e) {
+        if (e.data === YT.PlayerState.ENDED) {
+          ytPlayer.nextVideo();
+        }
+      }
+    }
+  });
+}
+
 const musicBtn = document.getElementById('musicBtn');
 const musicBars = document.getElementById('musicBars');
 const musicIcon = document.getElementById('musicIcon');
 const musicHint = document.getElementById('musicHint');
-let musicPlaying = false;
-let musicCtx = null;
-let musicScheduler = null;
-let musicStartTime = 0;
-let musicBeat = 0;
-
-const BPM = 95;
-const BEAT = 60 / BPM;
-
-// Chill Pop 和弦进行 (Cmaj7 → Am7 → Fmaj7 → G7)
-const CHORDS = [
-  [261.63, 329.63, 392.00, 493.88], // Cmaj7
-  [220.00, 261.63, 329.63, 392.00], // Am7
-  [174.61, 220.00, 261.63, 329.63], // Fmaj7
-  [196.00, 246.94, 293.66, 349.23], // G7
-];
-
-// 旋律音符 (频率, 节拍位置)
-const MELODY = [
-  [523.25,0],[587.33,1],[659.25,2],[587.33,3],
-  [523.25,4],[493.88,5],[440.00,6],[493.88,7],
-  [523.25,8],[587.33,9],[659.25,10],[783.99,11],
-  [659.25,12],[587.33,13],[523.25,14],[493.88,15],
-];
-
-function createNoise(ctx, duration) {
-  const bufferSize = ctx.sampleRate * duration;
-  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-  return buffer;
-}
-
-function playPad(ctx, freqs, time, duration, master) {
-  freqs.forEach(freq => {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    const filter = ctx.createBiquadFilter();
-    osc.type = 'sine';
-    osc.frequency.value = freq;
-    filter.type = 'lowpass';
-    filter.frequency.value = 800;
-    gain.gain.setValueAtTime(0, time);
-    gain.gain.linearRampToValueAtTime(0.04, time + 0.3);
-    gain.gain.setValueAtTime(0.04, time + duration - 0.5);
-    gain.gain.linearRampToValueAtTime(0, time + duration);
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(master);
-    osc.start(time);
-    osc.stop(time + duration + 0.1);
-  });
-}
-
-function playKick(ctx, time, master) {
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(150, time);
-  osc.frequency.exponentialRampToValueAtTime(30, time + 0.15);
-  gain.gain.setValueAtTime(0.3, time);
-  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
-  osc.connect(gain);
-  gain.connect(master);
-  osc.start(time);
-  osc.stop(time + 0.35);
-}
-
-function playHiHat(ctx, time, master) {
-  const buf = createNoise(ctx, 0.05);
-  const src = ctx.createBufferSource();
-  const gain = ctx.createGain();
-  const filter = ctx.createBiquadFilter();
-  src.buffer = buf;
-  filter.type = 'highpass';
-  filter.frequency.value = 8000;
-  gain.gain.setValueAtTime(0.08, time);
-  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
-  src.connect(filter);
-  filter.connect(gain);
-  gain.connect(master);
-  src.start(time);
-}
-
-function playSnare(ctx, time, master) {
-  const buf = createNoise(ctx, 0.1);
-  const src = ctx.createBufferSource();
-  const gain = ctx.createGain();
-  const filter = ctx.createBiquadFilter();
-  src.buffer = buf;
-  filter.type = 'bandpass';
-  filter.frequency.value = 3000;
-  gain.gain.setValueAtTime(0.15, time);
-  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
-  src.connect(filter);
-  filter.connect(gain);
-  gain.connect(master);
-  src.start(time);
-
-  // snare tone
-  const osc = ctx.createOscillator();
-  const g2 = ctx.createGain();
-  osc.type = 'triangle';
-  osc.frequency.value = 200;
-  g2.gain.setValueAtTime(0.1, time);
-  g2.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
-  osc.connect(g2);
-  g2.connect(master);
-  osc.start(time);
-  osc.stop(time + 0.1);
-}
-
-function playMelodyNote(ctx, freq, time, master) {
-  const osc = ctx.createOscillator();
-  const osc2 = ctx.createOscillator();
-  const gain = ctx.createGain();
-  const filter = ctx.createBiquadFilter();
-  
-  osc.type = 'sine';
-  osc.frequency.value = freq;
-  osc2.type = 'triangle';
-  osc2.frequency.value = freq * 2;
-  
-  const g2 = ctx.createGain();
-  g2.gain.value = 0.15;
-  
-  filter.type = 'lowpass';
-  filter.frequency.value = 2000;
-  
-  gain.gain.setValueAtTime(0, time);
-  gain.gain.linearRampToValueAtTime(0.1, time + 0.02);
-  gain.gain.exponentialRampToValueAtTime(0.05, time + 0.15);
-  gain.gain.exponentialRampToValueAtTime(0.001, time + BEAT * 0.9);
-  
-  osc.connect(filter);
-  osc2.connect(g2);
-  g2.connect(filter);
-  filter.connect(gain);
-  gain.connect(master);
-  
-  osc.start(time);
-  osc.stop(time + BEAT);
-  osc2.start(time);
-  osc2.stop(time + BEAT);
-}
-
-function playBass(ctx, freq, time, duration, master) {
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = 'sine';
-  osc.frequency.value = freq / 2;
-  gain.gain.setValueAtTime(0.12, time);
-  gain.gain.setValueAtTime(0.12, time + duration - 0.1);
-  gain.gain.linearRampToValueAtTime(0, time + duration);
-  osc.connect(gain);
-  gain.connect(master);
-  osc.start(time);
-  osc.stop(time + duration + 0.1);
-}
-
-function scheduleBar(ctx, barStart, barIndex, master) {
-  const chord = CHORDS[barIndex % CHORDS.length];
-  const barLen = BEAT * 16;
-
-  // 和弦 pad
-  playPad(ctx, chord, barStart, barLen, master);
-
-  // 贝斯
-  playBass(ctx, chord[0], barStart, barLen, master);
-
-  // 鼓组 - 每16拍一个bar
-  for (let i = 0; i < 16; i++) {
-    const t = barStart + i * BEAT;
-    // kick: 1, 5, 9, 13
-    if (i % 4 === 0) playKick(ctx, t, master);
-    // snare: 5, 13
-    if (i === 4 || i === 12) playSnare(ctx, t, master);
-    // hihat: 每拍
-    playHiHat(ctx, t, master);
-    // offbeat hihat
-    if (i % 2 === 1) playHiHat(ctx, t + BEAT * 0.5, master);
-  }
-
-  // 旋律
-  MELODY.forEach(([freq, pos]) => {
-    playMelodyNote(ctx, freq, barStart + pos * BEAT, master);
-  });
-}
-
-function startMusic() {
-  if (!musicCtx) {
-    musicCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (musicCtx.state === 'suspended') musicCtx.resume();
-
-  const master = musicCtx.createGain();
-  master.gain.value = 0.5;
-  master.connect(musicCtx.destination);
-
-  // 简单混响
-  const convolver = musicCtx.createConvolver();
-  const reverbGain = musicCtx.createGain();
-  reverbGain.gain.value = 0.2;
-  const sr = musicCtx.sampleRate;
-  const impulse = musicCtx.createBuffer(2, sr * 1.5, sr);
-  for (let ch = 0; ch < 2; ch++) {
-    const d = impulse.getChannelData(ch);
-    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 1.5);
-  }
-  convolver.buffer = impulse;
-  master.connect(convolver);
-  convolver.connect(reverbGain);
-  reverbGain.connect(musicCtx.destination);
-
-  musicStartTime = musicCtx.currentTime;
-  musicBeat = 0;
-  const barLen = BEAT * 16;
-
-  function schedule() {
-    if (!musicPlaying) return;
-    const now = musicCtx.currentTime;
-    while (musicStartTime + musicBeat * barLen < now + 2) {
-      scheduleBar(musicCtx, musicStartTime + musicBeat * barLen, musicBeat, master);
-      musicBeat++;
-    }
-    musicScheduler = setTimeout(schedule, 500);
-  }
-
-  schedule();
-}
 
 function toggleMusic() {
+  if (!ytPlayer || !ytPlayer.playVideo) {
+    // Player not ready yet, try again
+    setTimeout(toggleMusic, 500);
+    return;
+  }
   if (musicPlaying) {
+    ytPlayer.pauseVideo();
     musicPlaying = false;
-    if (musicScheduler) clearTimeout(musicScheduler);
-    if (musicCtx) musicCtx.suspend();
     musicBtn.classList.remove('playing');
     musicBars.style.display = 'none';
     musicIcon.style.display = 'inline';
     musicHint.textContent = 'Play Music';
   } else {
+    ytPlayer.playVideo();
     musicPlaying = true;
-    startMusic();
     musicBtn.classList.add('playing');
     musicBars.style.display = 'flex';
     musicIcon.style.display = 'none';
@@ -1420,7 +1228,14 @@ function toggleMusic() {
 }
 
 document.addEventListener('click', function autoPlay() {
-  if (!musicPlaying) toggleMusic();
+  if (!musicPlaying && ytPlayer && ytPlayer.playVideo) {
+    ytPlayer.playVideo();
+    musicPlaying = true;
+    musicBtn.classList.add('playing');
+    musicBars.style.display = 'flex';
+    musicIcon.style.display = 'none';
+    musicHint.textContent = 'Pause Music';
+  }
 }, { once: true });
 </script>
 </body>
