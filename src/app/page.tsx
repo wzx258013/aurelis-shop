@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useEffect } from "react";
 import { ArrowDownRight, ArrowRight, Camera, Check, Globe2, Menu, MessageCircle, MoveRight, X } from "lucide-react";
-import { products } from "@/lib/products";
+import { fetchPublishedProducts, fetchSettings, fallbackCmsProducts, fallbackSettings, type SiteSettings } from "@/lib/cms";
 
 type Language = "EN" | "中文";
 
@@ -66,7 +67,14 @@ export default function Home() {
   const [language, setLanguage] = useState<Language>("EN");
   const [menuOpen, setMenuOpen] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
+  const [products, setProducts] = useState(fallbackCmsProducts);
+  const [settings, setSettings] = useState<SiteSettings>(fallbackSettings);
   const t = copy[language];
+
+  useEffect(() => {
+    fetchPublishedProducts().then(setProducts);
+    fetchSettings().then(setSettings);
+  }, []);
 
   return (
     <main>
@@ -94,7 +102,7 @@ export default function Home() {
 
       <section className="section collection-section" id="collection">
         <div className="section-heading"><div><p className="eyebrow gold">{t.featured}</p><h2>{t.featuredTitle}</h2></div><div className="heading-side"><p>{t.featuredText}</p><a className="text-link" href="#collection">{t.viewCollection}<MoveRight size={16} /></a></div></div>
-        <div className="product-grid">{products.map((product, index) => <Link className={`product-card product-${index + 1}`} href={`/collection/${product.slug}`} key={product.name}><div className="product-image-wrap"><img src={product.image} alt={language === "中文" ? product.cn : product.name} /><span className="product-tag">{product.tag}</span><span className="product-arrow"><ArrowRight size={18} /></span></div><div className="product-meta"><div><h3>{language === "中文" ? product.cn : product.name}</h3><p>{language === "中文" ? product.name : product.cn}</p></div><strong>{product.price}</strong></div></Link>)}</div>
+        <div className="product-grid">{products.map((product, index) => <Link className={`product-card product-${index + 1}`} href={`/product/?slug=${product.slug}`} key={product.name}><div className="product-image-wrap"><img src={product.image} alt={language === "中文" ? product.cn : product.name} /><span className="product-tag">{product.tag}</span><span className="product-arrow"><ArrowRight size={18} /></span></div><div className="product-meta"><div><h3>{language === "中文" ? product.cn : product.name}</h3><p>{language === "中文" ? product.name : product.cn}</p></div><strong>{product.price}</strong></div></Link>)}</div>
       </section>
 
       <section className="craft-section" id="craft"><div className="craft-image"><img src="/images/craft.jpg" alt="Craftsperson working with leather" /></div><div className="craft-content"><p className="eyebrow gold">{t.craftKicker}</p><h2>{t.craftTitle}</h2><p>{t.craftText}</p><a className="text-link" href="#story">{t.discover}<MoveRight size={16} /></a><div className="craft-mark">A<span>/</span>Q</div></div></section>
@@ -102,7 +110,7 @@ export default function Home() {
       <section className="bespoke-section" id="bespoke"><div className="bespoke-inner"><p className="eyebrow gold">AEQUO PRIVATE</p><h2>Made for one.</h2><p>From the measure of your foot to the final delivery, your private advisor will accompany every decision.</p><a className="button button-gold" href="#contact">{t.bespoke}<ArrowRight size={16} /></a></div></section>
       <section className="story-section" id="story"><div><p className="eyebrow gold">OBLIK. / CUT DIFFERENT.</p><h2>Elegance,<br /><em>reconsidered.</em></h2></div><p className="story-copy">AEQUO was born from an obsession with the perfect cut: a line that gives a silhouette its tension, a material its voice, a step its presence.</p></section>
 
-      <footer className="site-footer" id="contact"><div className="footer-top"><div><a className="wordmark footer-mark" href="#top">AEQUO<span>.</span></a><p>{t.footer}</p></div><div className="footer-contact"><p>PRIVATE APPOINTMENTS</p><a href="mailto:atelier@aequo.studio">atelier@aequo.studio</a><a href="https://wa.me/390000000000">WhatsApp advisor <MessageCircle size={14} /></a></div><div className="footer-social"><p>FOLLOW THE CUT</p><a href="https://instagram.com" aria-label="Instagram"><Camera size={18} /></a></div></div><div className="newsletter"><div><p className="eyebrow gold">{t.newsletter}</p><p>{t.newsletterText}</p></div>{subscribed ? <div className="subscribed"><Check size={16} /> {t.subscribed}</div> : <form onSubmit={(event) => { event.preventDefault(); setSubscribed(true); }}><input type="email" placeholder={t.email} aria-label={t.email} required /><button type="submit" aria-label={t.subscribe}><ArrowRight size={17} /></button></form>}</div><div className="footer-bottom"><span>© 2026 AEQUO STUDIO</span><div><a href="#contact">Shipping & returns</a><a href="#contact">Privacy</a><a href="#contact">FAQ</a></div><span>ITALY / WORLDWIDE</span></div></footer>
+      <footer className="site-footer" id="contact"><div className="footer-top"><div><a className="wordmark footer-mark" href="#top">AEQUO<span>.</span></a><p>{t.footer}</p></div><div className="footer-contact"><p>PRIVATE APPOINTMENTS</p><a href={`mailto:${settings.email}`}>{settings.email}</a><a href={`https://wa.me/${settings.whatsapp.replace(/\D/g, "")}`}>WhatsApp advisor <MessageCircle size={14} /></a></div><div className="footer-social"><p>FOLLOW THE CUT</p><a href={settings.instagram || "#contact"} aria-label="Instagram"><Camera size={18} /></a></div></div><div className="newsletter"><div><p className="eyebrow gold">{t.newsletter}</p><p>{t.newsletterText}</p></div>{subscribed ? <div className="subscribed"><Check size={16} /> {t.subscribed}</div> : <form onSubmit={(event) => { event.preventDefault(); setSubscribed(true); }}><input type="email" placeholder={t.email} aria-label={t.email} required /><button type="submit" aria-label={t.subscribe}><ArrowRight size={17} /></button></form>}</div><div className="footer-bottom"><span>© 2026 AEQUO STUDIO</span><div><a href="#contact">Shipping & returns</a><a href="#contact">Privacy</a><a href="#contact">FAQ</a></div><span>ITALY / WORLDWIDE</span></div></footer>
     </main>
   );
 }
