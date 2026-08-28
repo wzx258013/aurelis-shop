@@ -84,7 +84,7 @@ export default function Home() {
       </header>
 
       <section className="hero" id="top">
-        <img className="hero-image" src="https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&w=2200&q=90" alt="Black leather shoes in sculptural light" />
+        <img className="hero-image" src="/images/hero.jpg" alt="Black leather shoes in sculptural light" />
         <div className="hero-shade" />
         <div className="hero-content"><p className="eyebrow">{t.heroKicker}</p><h1>{t.heroTitle}</h1><p className="hero-copy">{t.heroText}</p><div className="hero-links"><a className="button button-light" href="#collection">{t.explore}<ArrowRight size={16} /></a><a className="text-link light-link" href="#bespoke">{t.bespoke}<ArrowDownRight size={16} /></a></div></div>
         <div className="hero-index">AEQUO / 001</div><a className="scroll-cue" href="#collection"><span /> Scroll to enter</a>
@@ -97,7 +97,7 @@ export default function Home() {
         <div className="product-grid">{products.map((product, index) => <Link className={`product-card product-${index + 1}`} href={`/collection/${product.slug}`} key={product.name}><div className="product-image-wrap"><img src={product.image} alt={language === "中文" ? product.cn : product.name} /><span className="product-tag">{product.tag}</span><span className="product-arrow"><ArrowRight size={18} /></span></div><div className="product-meta"><div><h3>{language === "中文" ? product.cn : product.name}</h3><p>{language === "中文" ? product.name : product.cn}</p></div><strong>{product.price}</strong></div></Link>)}</div>
       </section>
 
-      <section className="craft-section" id="craft"><div className="craft-image"><img src="https://images.unsplash.com/photo-1595341888016-a392ef81b7de?auto=format&fit=crop&w=1400&q=88" alt="Craftsperson working with leather" /></div><div className="craft-content"><p className="eyebrow gold">{t.craftKicker}</p><h2>{t.craftTitle}</h2><p>{t.craftText}</p><a className="text-link" href="#story">{t.discover}<MoveRight size={16} /></a><div className="craft-mark">A<span>/</span>Q</div></div></section>
+      <section className="craft-section" id="craft"><div className="craft-image"><img src="/images/craft.jpg" alt="Craftsperson working with leather" /></div><div className="craft-content"><p className="eyebrow gold">{t.craftKicker}</p><h2>{t.craftTitle}</h2><p>{t.craftText}</p><a className="text-link" href="#story">{t.discover}<MoveRight size={16} /></a><div className="craft-mark">A<span>/</span>Q</div></div></section>
 
       <section className="bespoke-section" id="bespoke"><div className="bespoke-inner"><p className="eyebrow gold">AEQUO PRIVATE</p><h2>Made for one.</h2><p>From the measure of your foot to the final delivery, your private advisor will accompany every decision.</p><a className="button button-gold" href="#contact">{t.bespoke}<ArrowRight size={16} /></a></div></section>
       <section className="story-section" id="story"><div><p className="eyebrow gold">OBLIK. / CUT DIFFERENT.</p><h2>Elegance,<br /><em>reconsidered.</em></h2></div><p className="story-copy">AEQUO was born from an obsession with the perfect cut: a line that gives a silhouette its tension, a material its voice, a step its presence.</p></section>

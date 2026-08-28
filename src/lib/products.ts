@@ -21,8 +21,8 @@ export const products: Product[] = [
     category: "Pumps",
     material: "Black calfskin",
     description: "A sharp, architectural pump defined by its angled vamp and quiet gloss. Cut from supple Italian calfskin and finished by hand in our Milanese atelier.",
-    image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=1400&q=88",
-    detailImage: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=2200&q=90",
+    image: "/images/pump.jpg",
+    detailImage: "/images/pump.jpg",
   },
   {
     slug: "the-equis-loafer",
@@ -33,8 +33,8 @@ export const products: Product[] = [
     category: "Loafers",
     material: "Polished calfskin",
     description: "A considered loafer with a strong instep and an easy, balanced line. Its hand-burnished finish deepens with wear.",
-    image: "https://images.unsplash.com/photo-1533867617858-e7b97e060509?auto=format&fit=crop&w=1400&q=88",
-    detailImage: "https://images.unsplash.com/photo-1533867617858-e7b97e060509?auto=format&fit=crop&w=2200&q=90",
+    image: "/images/loafer.jpg",
+    detailImage: "/images/loafer.jpg",
   },
   {
     slug: "the-nocturne-boot",
@@ -45,7 +45,7 @@ export const products: Product[] = [
     category: "Boots",
     material: "Vegetable-tanned leather",
     description: "A close-fitting ankle boot with a sculptural heel and a precise, uninterrupted profile. Limited to 50 pairs.",
-    image: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?auto=format&fit=crop&w=1400&q=88",
-    detailImage: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?auto=format&fit=crop&w=2200&q=90",
+    image: "/images/boot.jpg",
+    detailImage: "/images/boot.jpg",
   },
 ];
