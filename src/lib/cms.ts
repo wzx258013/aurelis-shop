@@ -39,6 +39,27 @@ export const fallbackSettings: SiteSettings = {
   appointment_text: "Private appointments are available by consultation.",
 };
 
+export function normalizeCmsProduct(row: Record<string, unknown>): CmsProduct {
+  const name = String(row.name || "Untitled product");
+  const slug = String(row.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
+  const priceValue = row.price === null || row.price === undefined ? "" : String(row.price);
+  return {
+    id: row.id ? String(row.id) : undefined,
+    slug,
+    name,
+    cn: String(row.cn || name),
+    price: priceValue.startsWith("$") ? priceValue : `$${Number(priceValue || 0).toLocaleString("en-US")}`,
+    tag: String(row.tag || row.badge || ""),
+    category: String(row.category || "Collection"),
+    material: String(row.material || row.sub || ""),
+    description: String(row.description || ""),
+    image: String(row.image || ""),
+    detailImage: String(row.detail_image || row.image || ""),
+    published: row.published === undefined ? row.status !== "draft" : Boolean(row.published),
+    sort_order: Number(row.sort_order || 0),
+  };
+}
+
 export async function fetchPublishedProducts(): Promise<CmsProduct[]> {
   if (!supabase) return fallbackCmsProducts;
   const { data, error } = await supabase
@@ -47,7 +68,7 @@ export async function fetchPublishedProducts(): Promise<CmsProduct[]> {
     .eq("published", true)
     .order("sort_order", { ascending: true });
   if (error || !data?.length) return fallbackCmsProducts;
-  return data as CmsProduct[];
+  return data.map((row) => normalizeCmsProduct(row));
 }
 
 export async function fetchSettings(): Promise<SiteSettings> {
