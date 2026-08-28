@@ -36,12 +36,12 @@ export default function AdminPage() {
 
   if (!sessionReady) return <AdminShell><div className="admin-loading">Loading atelier…</div></AdminShell>;
   if (!cmsConfigured) return <AdminShell><div className="admin-empty"><p className="admin-kicker">AEQUO ADMIN</p><h1>Connect your atelier.</h1><p>Add the two Supabase public values to the GitHub repository secrets, then redeploy the site. The setup file is ready in <code>supabase-schema.sql</code>.</p></div></AdminShell>;
-  if (!loggedIn) return <AdminShell><form className="auth-panel" onSubmit={submitAuth}><p className="admin-kicker">AEQUO PRIVATE</p><h1>{authMode === "login" ? "Welcome back." : "Create access."}</h1><label>Email<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required /></label><label>Password<input value={password} onChange={(event) => setPassword(event.target.value)} type="password" minLength={6} required /></label>{message && <p className="admin-message">{message}</p>}<button className="admin-primary" type="submit">{authMode === "login" ? "Sign in" : "Create account"}</button><button className="admin-text-button" type="button" onClick={() => { setAuthMode(authMode === "login" ? "signup" : "login"); setMessage(""); }}>{authMode === "login" ? "Create a new admin account" : "Back to sign in"}</button></form></AdminShell>;
+  if (!loggedIn) return <AdminShell><form className="auth-panel" onSubmit={submitAuth}><p className="admin-kicker">AEQUO PRIVATE</p><h1>{authMode === "login" ? "Welcome back." : "Create access."}</h1><div className="auth-tabs"><button type="button" className={authMode === "login" ? "active" : ""} onClick={() => { setAuthMode("login"); setMessage(""); }}>Sign in</button><button type="button" className={authMode === "signup" ? "active" : ""} onClick={() => { setAuthMode("signup"); setMessage(""); }}>Create account</button></div><label>Email<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required /></label><label>Password<input value={password} onChange={(event) => setPassword(event.target.value)} type="password" minLength={6} required /></label>{message && <p className="admin-message">{message}</p>}<button className="admin-primary auth-submit" type="submit">{authMode === "login" ? "Sign in" : "Create account"}</button></form></AdminShell>;
   return <Dashboard onSignOut={() => supabase?.auth.signOut()} />;
 }
 
 function AdminShell({ children }: { children: React.ReactNode }) {
-  return <main className="admin-page"><header className="admin-header"><a className="wordmark" href="/">AEQUO<span>.</span></a><span>CONTENT ATELIER</span><a href="/">View site ↗</a></header>{children}</main>;
+  return <main className="admin-page"><header className="admin-header"><Link className="wordmark" href="/">AEQUO<span>.</span></Link><span>CONTENT ATELIER</span><Link href="/">View site ↗</Link></header>{children}</main>;
 }
 
 function Dashboard({ onSignOut }: { onSignOut: () => void }) {
@@ -51,13 +51,13 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   const [settings, setSettings] = useState<SiteSettings>(fallbackSettings);
   const [notice, setNotice] = useState("");
 
-  async function loadContent() {
+  useEffect(() => {
     if (!supabase) return;
-    const [productResult, settingsResult] = await Promise.all([supabase.from("products").select("*").order("sort_order"), supabase.from("site_settings").select("*").eq("id", "default").maybeSingle()]);
-    if (productResult.data) setProducts(productResult.data as CmsProduct[]);
-    if (settingsResult.data) setSettings(settingsResult.data as SiteSettings);
-  }
-  useEffect(() => { loadContent(); }, []);
+    Promise.all([supabase.from("products").select("*").order("sort_order"), supabase.from("site_settings").select("*").eq("id", "default").maybeSingle()]).then(([productResult, settingsResult]) => {
+      if (productResult.data) setProducts(productResult.data as CmsProduct[]);
+      if (settingsResult.data) setSettings(settingsResult.data as SiteSettings);
+    });
+  }, []);
   async function removeProduct(id?: string) {
     if (!supabase || !id || !window.confirm("Delete this product?")) return;
     const { error } = await supabase.from("products").delete().eq("id", id);
