@@ -30,3 +30,6 @@ where detail_image = '';
 
 update public.products
 set published = (status = 'published');
+
+-- Refresh PostgREST's column cache immediately after the migration.
+notify pgrst, 'reload schema';

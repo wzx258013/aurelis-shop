@@ -93,6 +93,47 @@ function ProductEditor({ product, onClose, onSaved }: { product: CmsProduct; onC
     if (!supabase) return; setUploading(true); setError(""); const safeName = file.name.toLowerCase().replace(/[^a-z0-9.]+/g, "-"); const path = `${crypto.randomUUID()}-${safeName}`; const result = await supabase.storage.from("product-images").upload(path, file, { upsert: false });
     if (result.error) setError(result.error.message); else { const url = supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl; update("image", url); if (!draft.detailImage) update("detailImage", url); } setUploading(false);
   }
-  async function save(event: FormEvent) { event.preventDefault(); if (!supabase) return; setSaving(true); setError(""); const numericPrice = Number(draft.price.replace(/[^\d.]/g, "")) || 0; const { data, error: saveError } = await supabase.from("products").upsert({ id: draft.id || undefined, slug: draft.slug, name: draft.name, cn: draft.cn, price: numericPrice, tag: draft.tag, category: draft.category, material: draft.material, description: draft.description, image: draft.image, detail_image: draft.detailImage, published: draft.published, sort_order: draft.sort_order }).select().single(); if (saveError) setError(saveError.message); else onSaved(normalizeCmsProduct(data)); setSaving(false); }
+  async function save(event: FormEvent) {
+    event.preventDefault();
+    if (!supabase) return;
+    setSaving(true);
+    setError("");
+    const numericPrice = Number(draft.price.replace(/[^\d.]/g, "")) || 0;
+    let result = await supabase.from("products").upsert({
+      id: draft.id || undefined,
+      slug: draft.slug,
+      name: draft.name,
+      cn: draft.cn,
+      price: numericPrice,
+      tag: draft.tag,
+      category: draft.category,
+      material: draft.material,
+      description: draft.description,
+      image: draft.image,
+      detail_image: draft.detailImage,
+      published: draft.published,
+      sort_order: draft.sort_order,
+    }).select().single();
+
+    // Keep the editor usable while an older products table is waiting for schema-cache refresh.
+    if (result.error && /schema|column|缓存|找不到.*cn|cn.*列/i.test(result.error.message)) {
+      result = await supabase.from("products").upsert({
+        id: draft.id || undefined,
+        name: draft.name,
+        sub: draft.material,
+        price: draft.price,
+        category: draft.category,
+        badge: draft.tag,
+        image: draft.image,
+        description: draft.description,
+        details: draft.description,
+        status: draft.published ? "published" : "draft",
+      }).select().single();
+    }
+
+    if (result.error) setError(result.error.message);
+    else onSaved(normalizeCmsProduct(result.data));
+    setSaving(false);
+  }
   return <div className="editor-backdrop"><form className="editor-panel" onSubmit={save}><div className="editor-header"><div><p className="admin-kicker">PRODUCT EDITOR</p><h2>{draft.id ? "Edit product" : "New product"}</h2></div><button type="button" className="icon-button" onClick={onClose}><X size={20} /></button></div><div className="editor-grid"><label>Name<input value={draft.name} onChange={(event) => update("name", event.target.value)} required /></label><label>Slug<input value={draft.slug} onChange={(event) => update("slug", event.target.value)} placeholder="the-new-piece" required /></label><label>Chinese name<input value={draft.cn} onChange={(event) => update("cn", event.target.value)} /></label><label>Price<input value={draft.price} onChange={(event) => update("price", event.target.value)} /></label><label>Category<select value={draft.category} onChange={(event) => update("category", event.target.value)}><option>Pumps</option><option>Loafers</option><option>Boots</option><option>Bespoke</option></select></label><label>Tag<input value={draft.tag} onChange={(event) => update("tag", event.target.value)} placeholder="Limited" /></label><label>Material<input value={draft.material} onChange={(event) => update("material", event.target.value)} /></label><label>Sort order<input value={draft.sort_order} onChange={(event) => update("sort_order", Number(event.target.value))} type="number" /></label></div><label>Description<textarea value={draft.description} onChange={(event) => update("description", event.target.value)} /></label><div className="upload-zone">{draft.image ? <img src={draft.image} alt="Product preview" /> : <ImagePlus size={26} />}<label className="upload-button"><Upload size={16} /> {uploading ? "Uploading…" : "Upload product image"}<input type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (file) uploadImage(file); }} /></label></div><label className="checkbox-line"><input type="checkbox" checked={draft.published} onChange={(event) => update("published", event.target.checked)} /> Visible on website</label>{error && <p className="admin-error">{error}</p>}<div className="editor-actions"><button type="button" className="admin-secondary" onClick={onClose}>Cancel</button><button className="admin-primary" type="submit" disabled={saving || uploading}><Save size={16} /> {saving ? "Saving…" : "Save product"}</button></div></form></div>;
 }
